@@ -1,197 +1,772 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Обучающий урок: Паралимпийцы Латвии</title>
-    <style>
-        body {
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f4f4f9;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rotor Static Balancing Calculator</title>
+  <style>
+    :root {
+      --bg-dark: #0f172a;
+      --card-bg: #1e293b;
+      --accent: #38bdf8;
+      --text: #f8fafc;
+      --text-dim: #94a3b8;
+      --border: #334155;
+      --heavy-spot: #ef4444;
+      --weight-spot: #10b981;
+      --warning: #f59e0b;
+    }
 
-        /* Видео-заголовок (Мобильный вид по умолчанию) */
-        .video-container {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            z-index: 1000;
-            background: #000;
-            aspect-ratio: 16 / 9;
-        }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
 
-        .video-container iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
-        }
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text);
+      display: flex;
+      justify-content: center;
+      padding: 20px 14px;
+      min-height: 100vh;
+      position: relative;
+    }
 
-        /* Основной контент */
-        .content {
-            margin-top: 58vw; /* Динамический отступ под размер видео */
-            padding: 15px;
-        }
+    .container {
+      width: 100%;
+      max-width: 1100px;
+      background-color: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+      position: relative;
+    }
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            background: white;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
+    h1 {
+      font-size: 1.45rem;
+      margin-bottom: 6px;
+      color: var(--accent);
+    }
 
-        th, td {
-            width: 50%;
-            padding: 12px;
-            text-align: left;
-            border-bottom: 1px solid #ddd;
-            vertical-align: top;
-            line-height: 1.4;
-        }
+    p.subtitle {
+      color: var(--text-dim);
+      font-size: 0.88rem;
+      margin-bottom: 20px;
+    }
 
-        th {
-            background-color: #2c3e50;
-            color: white;
-            position: sticky;
-            top: 58vw; /* Для мобильных - прилипает под видео */
-        }
+    .layout {
+      display: grid;
+      grid-template-columns: 1.15fr 1fr;
+      gap: 24px;
+    }
 
-        .original-text {
-            font-weight: 600;
-            color: #2c3e50;
-        }
+    @media (max-width: 880px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+    }
 
-        .translation-text {
-            color: #444;
-        }
+    .input-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
 
-        /* Мобильные устройства: уменьшение шрифта */
-        @media (max-width: 600px) {
-            table {
-                font-size: 0.9em;
-            }
-        }
+    .input-group {
+      margin-bottom: 10px;
+    }
 
-        /* Горизонтальный режим (Планшеты/ПК) */
-        @media (orientation: landscape) {
-            .video-container {
-                width: 45%;
-                height: 100vh;
-                position: fixed;
-            }
+    label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 500;
+      margin-bottom: 4px;
+      color: var(--text-dim);
+    }
 
-            .content {
-                margin-top: 0;
-                margin-left: 45%;
-                height: 100vh;
-                overflow-y: auto;
-                padding: 0;
-            }
+    input[type="number"] {
+      width: 100%;
+      background: #0f172a;
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 8px 10px;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      outline: none;
+    }
 
-            th {
-                position: sticky;
-                top: 0;
-                z-index: 10;
-            }
+    input[type="number"]:focus {
+      border-color: var(--accent);
+    }
 
-            .video-container iframe {
-                height: 100%;
-            }
-        }
-    </style>
+    /* Delta Banner */
+    .delta-badge {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(56, 189, 248, 0.12);
+      border: 1.5px solid var(--accent);
+      border-radius: 8px;
+      padding: 10px 14px;
+      margin-bottom: 14px;
+    }
+
+    .delta-badge .title {
+      font-size: 0.85rem;
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    .delta-badge .value {
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: #ffffff;
+    }
+
+    .card {
+      background: #151f30;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px;
+      margin-top: 14px;
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 6px;
+    }
+
+    .card h3 {
+      font-size: 0.95rem;
+      color: var(--text);
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 6px;
+    }
+
+    .btn-small {
+      background: transparent;
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      cursor: pointer;
+    }
+
+    .btn-small:hover {
+      background: rgba(56, 189, 248, 0.1);
+    }
+
+    .holes-selector {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(65px, 1fr));
+      gap: 6px;
+      margin-top: 8px;
+      max-height: 140px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+
+    .hole-toggle {
+      background: #0f172a;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 6px 2px;
+      font-size: 0.75rem;
+      text-align: center;
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.15s;
+    }
+
+    .hole-toggle.active {
+      background: #065f46;
+      border-color: #10b981;
+      color: #ecfdf5;
+      font-weight: bold;
+    }
+
+    .res-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 6px;
+      font-size: 0.88rem;
+    }
+
+    .res-row span:first-child {
+      color: var(--text-dim);
+    }
+
+    .highlight-box {
+      background: #064e3b;
+      border: 1px solid #059669;
+      color: #ecfdf5;
+      padding: 12px;
+      border-radius: 6px;
+      margin-top: 10px;
+      font-size: 0.88rem;
+      line-height: 1.45;
+    }
+
+    .warning-box {
+      background: #451a03;
+      border: 1px solid var(--warning);
+      color: #fef3c7;
+      padding: 10px;
+      border-radius: 6px;
+      margin-top: 10px;
+      font-size: 0.85rem;
+    }
+
+    canvas {
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      background: #0b1120;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      display: block;
+      cursor: pointer;
+    }
+
+    .legend {
+      display: flex;
+      gap: 12px;
+      margin-top: 10px;
+      font-size: 0.78rem;
+      color: var(--text-dim);
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+    }
+
+    .dot.heavy { background: var(--heavy-spot); }
+    .dot.weight { background: var(--weight-spot); }
+    .dot.target { background: #38bdf8; }
+    .hint {
+      font-size: 0.76rem;
+      color: var(--text-dim);
+      text-align: center;
+      margin-top: 6px;
+    }
+
+    /* Watermark / Signature */
+    .brand-mark {
+      position: absolute;
+      bottom: 12px;
+      right: 18px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 2px;
+      color: #475569;
+      text-transform: uppercase;
+      user-select: none;
+      transition: color 0.2s ease;
+    }
+
+    .brand-mark:hover {
+      color: var(--accent);
+    }
+  </style>
 </head>
 <body>
+  <div class="container">
+    <h1>Rotor Static Balancing Calculator</h1>
+    <p class="subtitle">Pendulum fixture: scale difference calculation and discrete hole mass split</p>
 
-    <div class="video-container">
-        <iframe src="https://www.youtube.com/embed/0TQIQFDhP1Q" allowfullscreen></iframe>
+    <div class="layout">
+      <!-- Parameters and Inputs -->
+      <div>
+        <div class="input-grid">
+          <div class="input-group">
+            <label>Number of holes (N):</label>
+            <input type="number" id="holesCountInput" value="16" min="3" max="72" step="1">
+          </div>
+          <div class="input-group">
+            <label>Hole angular step:</label>
+            <input type="text" id="stepAngleDisplay" value="22.5°" disabled style="background:#1e293b; color:var(--accent); border:1px solid var(--border); padding:8px 10px; border-radius:6px; font-size:0.9rem;">
+          </div>
+        </div>
+
+        <div class="input-grid">
+          <div class="input-group">
+            <label>Lever arm length, L (mm):</label>
+            <input type="number" id="leverL" value="200" step="1">
+          </div>
+          <div class="input-group">
+            <label>Hole bolt circle radius, R (mm):</label>
+            <input type="number" id="radiusR" value="100" step="1">
+          </div>
+        </div>
+
+        <div class="input-grid">
+          <div class="input-group">
+            <label>Wmax — Max scale weight (g):</label>
+            <input type="number" id="wMax" value="154.5" step="0.1">
+          </div>
+          <div class="input-group">
+            <label>Wmin — Min scale weight (g):</label>
+            <input type="number" id="wMin" value="145.5" step="0.1">
+          </div>
+        </div>
+
+        <!-- Delta Banner -->
+        <div class="delta-badge">
+          <div>
+            <div class="title">SCALE DELTA (ΔW = Wmax − Wmin)</div>
+            <div style="font-size: 0.75rem; color: var(--text-dim);">Sensor peak-to-peak amplitude</div>
+          </div>
+          <div class="value" id="topDeltaDisplay">9.00 g</div>
+        </div>
+
+        <div class="input-group">
+          <label>Heavy spot angle, θ_heavy (°):</label>
+          <input type="number" id="angleHeavy" value="35" step="0.5" min="0" max="360">
+        </div>
+
+        <!-- Hole Positions -->
+        <div class="card">
+          <div class="card-header">
+            <h3>Available Counterweight Holes</h3>
+            <div class="btn-group">
+              <button class="btn-small" id="btnAuto2">Auto 2 holes</button>
+              <button class="btn-small" id="btnAuto4">Auto 4 holes</button>
+              <button class="btn-small" id="btnClear">Clear</button>
+            </div>
+          </div>
+          <div class="holes-selector" id="holesButtons"></div>
+        </div>
+
+        <!-- Calculation Results -->
+        <div class="card">
+          <h3>Summary</h3>
+          <div class="res-row">
+            <span>Scale amplitude difference (ΔW):</span>
+            <b id="resDeltaW" style="color: var(--accent); font-size: 1.05rem;">9.00 g</b>
+          </div>
+          <div class="res-row">
+            <span>Target angle (180° opposite):</span>
+            <b id="resTargetAngle">215.0°</b>
+          </div>
+          <div class="res-row">
+            <span>Ideal counterweight mass (1 point):</span>
+            <b id="resTargetMass">9.00 g</b>
+          </div>
+          <div id="resSummary" class="highlight-box"></div>
+          <div id="warningBox" class="warning-box" style="display: none;"></div>
+        </div>
+      </div>
+
+      <!-- Canvas / Graphical Preview -->
+      <div>
+        <canvas id="diskCanvas" width="500" height="500"></canvas>
+        <div class="hint">Click hole circles on the drawing to toggle them on/off</div>
+        <div class="legend">
+          <div class="legend-item"><div class="dot heavy"></div> Heavy spot</div>
+          <div class="legend-item"><div class="dot target"></div> Target vector</div>
+          <div class="legend-item"><div class="dot weight"></div> Active holes</div>
+        </div>
+      </div>
     </div>
 
-    <div class="content">
-        <table>
-            <thead>
-                <tr>
-                    <th>Latviešu (Original)</th>
-                    <th>Русский (Перевод)</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td class="original-text">Ziemas paralimpiskajās spēlēs Latvija pārstāv rekordu liela septiņu sportistu komanda. Visi ir ratiņkērlingisti. Nosaukums pasaka priekšā ka atlēti pārvietojas ratiņkrēslos.</td>
-                    <td class="translation-text">На зимних Паралимпийских играх Латвию представляет рекордно большая команда из семи спортсменов. Все они — керлингисты на колясках. Название уже говорит о том, что атлеты передвигаются в инвалидных креслах.</td>
-                </tr>
-                <tr>
-                    <td class="original-text">Latvijas komanda dzīvo atlētu ciematā Kortīna Adam Peco. Tāpat kā olimpiskajās spēlēs arī tagad tajā ir 1400 gultas vietas.</td>
-                    <td class="translation-text">Латвийская команда живет в олимпийской деревне Кортина-д'Ампеццо. Как и во время Олимпийских игр, сейчас здесь имеется 1400 спальных мест.</td>
-                </tr>
-                <tr>
-                    <td class="original-text">Atšķirībā no olimpiskajām spēlēm paralimpisko spēļu laikā sportistiem pieejams īpašs servisa centrs kur pilnībā bez maksas iespējams salabot praktiski jebko kas nepieciešams.</td>
-                    <td class="translation-text">В отличие от Олимпийских игр, во время Паралимпийских игр спортсменам доступен специальный сервисный центр, где совершенно бесплатно можно отремонтировать практически всё необходимое.</td>
-                </tr>
-                <tr>
-                    <td class="original-text">Mēs esam šeit lai palīdzētu ikvienam sportistam un katrai komandai kam nepieciešama jebkāda tehniskā palīdzība.</td>
-                    <td class="translation-text">Мы здесь, чтобы помочь каждому спортсмену и каждой команде, которым требуется любая техническая помощь.</td>
-                </tr>
-                <tr>
-                    <td class="original-text">Tā var būt gan ratiņkrēslu protezēšana palīdzība ar ortopēdiskajām zolītēm vai jebkas cits. Dažreiz nepieciešamā palīdzība ir tikai slēpju soma kas ir jāpiešauj lai pārvietotu slēpes.</td>
-                    <td class="translation-text">Это может быть как ремонт инвалидных колясок, помощь с ортопедическими стельками или что-либо другое. Иногда необходимая помощь — это всего лишь подшить лыжную сумку для переноски лыж.</td>
-                </tr>
-                <tr>
-                    <td class="original-text">Tāpēc šeit mums ir īsta darbnīca ar visu nepieciešamo: urpšanas iekārtu putekļu sūcēju šujmašīnu un visiem citiem mazajiem instrumentiem kas varētu būt nepieciešami lai veiktu jebkādus remontdarbus.</td>
-                    <td class="translation-text">Поэтому здесь у нас настоящая мастерская со всем необходимым: сверлильным станком, пылесосом, швейной машинкой и всеми другими мелкими инструментами, которые могут понадобиться для проведения любых ремонтных работ.</td>
-                </tr>
-                <tr>
-                    <td class="original-text">Ātrums tas ir ļoti svarīgi jo sportisti nevar tērēt savu laiku. Viņiem ir jātrenējas jāsacenšas un arī jāatpūšas. Tāpēc mums jābūt diezgan ātriem.</td>
-                    <td class="translation-text">Скорость — это очень важно, потому что спортсмены не могут тратить свое время. Им нужно тренироваться, соревноваться и также отдыхать. Поэтому мы должны быть довольно быстрыми.</td>
-                </tr>
-                <tr>
-                    <td class="original-text">Frančesko ar kolēģiem norāda ka viņu klientu lokā paspējuši pabūt arī Latvijas komandas dalībnieki.</td>
-                    <td class="translation-text">Франческо с коллегами отмечают, что в кругу их клиентов уже успели побывать и участники латвийской команды.</td>
-                </tr>
-                <tr>
-                    <td class="original-text">Kopumā apstākļi ciematā ir gana labi. Es ļoti labi izgulējis tāpēc ka man ļoti labas matricis. Un tiešām apbrīnoju kā tik mazā telpiņa ir tik labi viss pielāgots ratiņiem.</td>
-                    <td class="translation-text">В целом условия в деревне достаточно хорошие. Я очень хорошо выспался, потому что у меня очень хорошие матрасы. И действительно восхищаюсь тем, как в такой маленькой комнатке всё так хорошо приспособлено для колясок.</td>
-                </tr>
-                <tr>
-                    <td class="original-text">Reāli viss pārdomāti skapīši tur iebraukt izbraukt tā kā nu man ļoti patīk jo ļoti ērti un tiešām viss ir sasniedzams.</td>
-                    <td class="translation-text">Реально всё продумано: шкафчики, возможность заехать и выехать, так что мне очень нравится — очень удобно и действительно всё достижимо.</td>
-                </tr>
-                <tr>
-                    <td class="original-text">Un pat piemēram pakarāmais ir lejā nevajag tur augšā iet nu tas ir tiešām paldies organizatoram ka viņi tik smalki visu ergonomiski pārdomā.</td>
-                    <td class="translation-text">И даже, например, вешалка находится внизу, не нужно тянуться наверх. За это действительно спасибо организаторам, что они так тонко и эргономично всё продумали.</td>
-                </tr>
-                <tr>
-                    <td class="original-text">Matrs ir vienkārši perfekto ļoti labs. Un te arī tik maz vietiņas bet apbrīnoju ka viss ienāca iekšā un pilnīgi ar ratiem var iebraukt arī dušas kabīnā ja un pēc tam aizverties.</td>
-                    <td class="translation-text">Матрас просто идеальный, очень хороший. И здесь хоть и мало места, но я восхищаюсь, что всё поместилось, и на коляске можно полностью заехать даже в душевую кабину и затем закрыться.</td>
-                </tr>
-                <tr>
-                    <td class="original-text">Lai arī ratiņlingist sacensības jau sākuši oficiāli spēles atklāj šovakar Veronas arēnā. Latvija tajā nekādā veidā nepiedalās jo agresorvalstu sportistiem lielajā forumā atļauts piedalīties ar savu karogu.</td>
-                    <td class="translation-text">Хотя соревнования по керлингу на колясках уже начались, официально игры открываются сегодня вечером на арене Вероны. Латвия в этом никак не участвует, так как спортсменам стран-агрессоров на большом форуме разрешено участвовать под своим флагом.</td>
-                </tr>
-                <tr>
-                    <td class="original-text">Jautājums par šo leģitimitāti šo sportistu. Jā juridiski viņiem bija šeit tiesības būt it kā bet cik tas ir sportiski atbilstoši jo atcerēsimies ka līdz pat pagājušā gada septembrim viņi nedrīkstēja piedalīties sacensībās un krāt punktus.</td>
-                    <td class="translation-text">Вопрос о легитимности этих спортсменов. Да, юридически у них вроде бы были права здесь находиться, но насколько это соответствует спортивному духу, ведь вспомним, что до сентября прошлого года им нельзя было участвовать в соревнованиях и копить очки.</td>
-                </tr>
-                <tr>
-                    <td class="original-text">Tad es zinu ka tikai decembra vidū tika pieņemts lēmums ar tiesas palīdzību ka viņi drīkst piedalīties slēpošanā tieši šo te kvalifikācijas mačos. Nu un tagad jautājums kā viņi mēneša pusotra laikā ieguva attiecīgos punktus lai šeit būtu.</td>
-                    <td class="translation-text">Затем я знаю, что только в середине декабря при помощи суда было принято решение, что они могут участвовать в лыжных гонках именно в этих квалификационных матчах. И теперь вопрос: как они за полтора месяца набрали соответствующие очки, чтобы быть здесь.</td>
-                </tr>
-                <tr>
-                    <td class="original-text">Latvija ir tikai viena no trim valstīm kas pārstāvēta abās ratiņkerlinga disciplīnās. Jaukto pāru sacensībās Poļina Ruškova un Agris Lasmis šodien izcīnīja pirmo uzvaru pārspējot Igauniju.</td>
-                    <td class="translation-text">Латвия — одна из трех стран, представленных в обеих дисциплинах керлинга на колясках. В соревнованиях смешанных пар Полина Рожкова и Агрис Ласмис сегодня одержали первую победу, обыграв Эстонию.</td>
-                </tr>
-                <tr>
-                    <td class="original-text">Bet jaukto komandu sacensības sāksies rīt. Matīss Timofejevs un Normunds Pavlovskis no Kortīnas Dampeco Itālijā.</td>
-                    <td class="translation-text">А соревнования смешанных команд начнутся завтра. Матисс Тимофеев и Нормундс Павловскис из Кортина-д'Ампеццо, Италия.</td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
+    <!-- Author Mark -->
+    <div class="brand-mark">SNEZH</div>
+  </div>
 
+  <script>
+    let holesCount = 16;
+    let stepAngle = 360 / holesCount;
+    const activeHoles = new Set();
+
+    const canvas = document.getElementById('diskCanvas');
+    const ctx = canvas.getContext('2d');
+    const holesContainer = document.getElementById('holesButtons');
+    const holesCountInput = document.getElementById('holesCountInput');
+    const stepAngleDisplay = document.getElementById('stepAngleDisplay');
+
+    function toRad(deg) { return (deg * Math.PI) / 180; }
+
+    function rebuildHolesButtons() {
+      holesContainer.innerHTML = '';
+      for (let i = 0; i < holesCount; i++) {
+        const btn = document.createElement('div');
+        btn.className = 'hole-toggle';
+        btn.id = `hole-btn-${i}`;
+        btn.innerText = `#${i}`;
+        btn.title = `#${i} (${(i * stepAngle).toFixed(1)}°)`;
+        btn.onclick = () => toggleHole(i);
+        holesContainer.appendChild(btn);
+      }
+      updateHolesUI();
+    }
+
+    function toggleHole(idx) {
+      if (activeHoles.has(idx)) {
+        activeHoles.delete(idx);
+      } else {
+        activeHoles.add(idx);
+      }
+      updateHolesUI();
+      calculate();
+    }
+
+    function updateHolesUI() {
+      for (let i = 0; i < holesCount; i++) {
+        const btn = document.getElementById(`hole-btn-${i}`);
+        if (!btn) continue;
+        if (activeHoles.has(i)) {
+          btn.classList.add('active');
+        } else {
+          btn.classList.remove('active');
+        }
+      }
+    }
+
+    function getHoleCoordinates(index, cx, cy, rHoles) {
+      const theta = toRad(index * stepAngle);
+      return {
+        x: cx + rHoles * Math.cos(theta),
+        y: cy - rHoles * Math.sin(theta)
+      };
+    }
+
+    function autoSelect(count) {
+      activeHoles.clear();
+      let angleHeavy = parseFloat(document.getElementById('angleHeavy').value) || 0;
+      angleHeavy = ((angleHeavy % 360) + 360) % 360;
+      const targetAngle = (angleHeavy + 180) % 360;
+      const baseIdx = Math.floor(targetAngle / stepAngle);
+
+      if (count === 2) {
+        activeHoles.add(baseIdx % holesCount);
+        activeHoles.add((baseIdx + 1) % holesCount);
+      } else if (count === 4) {
+        activeHoles.add((baseIdx - 1 + holesCount) % holesCount);
+        activeHoles.add(baseIdx % holesCount);
+        activeHoles.add((baseIdx + 1) % holesCount);
+        activeHoles.add((baseIdx + 2) % holesCount);
+      }
+      updateHolesUI();
+      calculate();
+    }
+
+    function solveDistribution(targetAngle, targetMass, selectedIndices) {
+      const n = selectedIndices.length;
+      if (n === 0) return { error: 'No mounting holes selected!' };
+
+      const phi0 = toRad(targetAngle);
+      const Tx = targetMass * Math.cos(phi0);
+      const Ty = targetMass * Math.sin(phi0);
+
+      if (n === 1) {
+        const idx = selectedIndices[0];
+        const phi = toRad(idx * stepAngle);
+        const cosDiff = Math.cos(phi - phi0);
+        if (cosDiff <= 0.05) {
+          return { error: `Hole #${idx} is on the wrong side of the rotor and cannot balance this load.` };
+        }
+        const m = targetMass / cosDiff;
+        const res = {};
+        res[idx] = m;
+        return { masses: res, totalAdded: m };
+      }
+
+      if (n === 2) {
+        const i1 = selectedIndices[0];
+        const i2 = selectedIndices[1];
+        const phi1 = toRad(i1 * stepAngle);
+        const phi2 = toRad(i2 * stepAngle);
+        const det = Math.sin(phi2 - phi1);
+
+        if (Math.abs(det) < 1e-4) {
+          return { error: 'Selected holes are collinear. Please select distinct angular positions.' };
+        }
+        const m1 = (Tx * Math.sin(phi2) - Ty * Math.cos(phi2)) / det;
+        const m2 = (Ty * Math.cos(phi1) - Tx * Math.sin(phi1)) / det;
+
+        if (m1 < -0.01 || m2 < -0.01) {
+          return { error: 'The ideal target vector is not between these two holes. Broaden your selection or add more points.' };
+        }
+        const res = {};
+        res[i1] = Math.max(0, m1);
+        res[i2] = Math.max(0, m2);
+        return { masses: res, totalAdded: (res[i1] + res[i2]) };
+      }
+
+      const cosA = selectedIndices.map(i => Math.cos(toRad(i * stepAngle)));
+      const sinA = selectedIndices.map(i => Math.sin(toRad(i * stepAngle)));
+      let weights = new Array(n).fill(targetMass / n);
+      let step = 0.05;
+
+      for (let iter = 0; iter < 1200; iter++) {
+        let curX = 0, curY = 0;
+        for (let i = 0; i < n; i++) {
+          curX += weights[i] * cosA[i];
+          curY += weights[i] * sinA[i];
+        }
+
+        const errX = curX - Tx;
+        const errY = curY - Ty;
+
+        for (let i = 0; i < n; i++) {
+          const grad = (errX * cosA[i] + errY * sinA[i]) + 0.02 * weights[i];
+          weights[i] = Math.max(0, weights[i] - step * grad);
+        }
+      }
+
+      let finalX = 0, finalY = 0, totalM = 0;
+      const res = {};
+      for (let i = 0; i < n; i++) {
+        finalX += weights[i] * cosA[i];
+        finalY += weights[i] * sinA[i];
+        const val = weights[i] < 0.02 ? 0 : weights[i];
+        res[selectedIndices[i]] = val;
+        totalM += val;
+      }
+
+      const residue = Math.hypot(finalX - Tx, finalY - Ty);
+      if (residue > 0.4) {
+        return { error: 'Cannot balance rotor with current selection without material removal. Select holes opposite to the heavy sector.' };
+      }
+
+      return { masses: res, totalAdded: totalM };
+    }
+
+    function calculate() {
+      const L = parseFloat(document.getElementById('leverL').value) || 0;
+      const R = parseFloat(document.getElementById('radiusR').value) || 1;
+      const wMax = parseFloat(document.getElementById('wMax').value) || 0;
+      const wMin = parseFloat(document.getElementById('wMin').value) || 0;
+      let angleHeavy = parseFloat(document.getElementById('angleHeavy').value) || 0;
+
+      const deltaW = Math.max(0, wMax - wMin);
+      
+      document.getElementById('topDeltaDisplay').innerText = `${deltaW.toFixed(2)} g`;
+      document.getElementById('resDeltaW').innerText = `${deltaW.toFixed(2)} g`;
+
+      angleHeavy = ((angleHeavy % 360) + 360) % 360;
+      const targetAngle = (angleHeavy + 180) % 360;
+      const targetMass = Math.max(0, (deltaW * L) / (2 * R));
+
+      document.getElementById('resTargetAngle').innerText = `${targetAngle.toFixed(1)}°`;
+      document.getElementById('resTargetMass').innerText = `${targetMass.toFixed(2)} g`;
+
+      const selected = Array.from(activeHoles).sort((a, b) => a - b);
+      const warnBox = document.getElementById('warningBox');
+      const sumBox = document.getElementById('resSummary');
+
+      if (selected.length === 0) {
+        warnBox.style.display = 'block';
+        warnBox.innerText = 'Please select mounting holes!';
+        sumBox.innerHTML = 'No holes selected';
+        draw(angleHeavy, targetAngle, {});
+        return;
+      }
+
+      const result = solveDistribution(targetAngle, targetMass, selected);
+
+      if (result.error) {
+        warnBox.style.display = 'block';
+        warnBox.innerText = '⚠️ ' + result.error;
+        sumBox.innerHTML = 'Balancing not possible with current configuration';
+        draw(angleHeavy, targetAngle, {});
+      } else {
+        warnBox.style.display = 'none';
+        let html = '<b>Mass Distribution:</b><br>';
+        let nonZeroCount = 0;
+        for (const idx of selected) {
+          const m = result.masses[idx] || 0;
+          if (m > 0.01) {
+            nonZeroCount++;
+            html += `• Hole <b>#${idx}</b> (${(idx * stepAngle).toFixed(1)}°): <b>${m.toFixed(2)} g</b><br>`;
+          }
+        }
+        if (nonZeroCount === 0) {
+          html += '<i>No additional counterweight required</i><br>';
+        }
+        html += `<span style="font-size: 0.85em; opacity: 0.85; margin-top: 4px; display:inline-block;">Total mass added: ${result.totalAdded.toFixed(2)} g</span>`;
+        sumBox.innerHTML = html;
+        draw(angleHeavy, targetAngle, result.masses);
+      }
+    }
+
+    function draw(heavyAngle, targetAngle, massesMap) {
+      const cx = canvas.width / 2;
+      const cy = canvas.height / 2;
+      const rDisk = 210;
+      const rHoles = 160;
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Disk outline
+      ctx.beginPath();
+      ctx.arc(cx, cy, rDisk, 0, 2 * Math.PI);
+      ctx.strokeStyle = '#38bdf8';
+      ctx.lineWidth = 2.5;
+      ctx.stroke();
+
+      // Axes
+      ctx.beginPath();
+      ctx.strokeStyle = '#334155';
+      ctx.lineWidth = 1;
+      ctx.moveTo(cx - rDisk - 10, cy); ctx.lineTo(cx + rDisk + 10, cy);
+      ctx.moveTo(cx, cy - rDisk - 10); ctx.lineTo(cx, cy + rDisk + 10);
+      ctx.stroke();
+
+      // Bolt circle track
+      ctx.beginPath();
+      ctx.arc(cx, cy, rHoles, 0, 2 * Math.PI);
+      ctx.strokeStyle = '#1e293b';
+      ctx.setLineDash([4, 4]);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Holes
+      for (let i = 0; i < holesCount; i++) {
+        const pt = getHoleCoordinates(i, cx, cy, rHoles);
+        const isActive = activeHoles.has(i);
+        const mass = (massesMap && massesMap[i]) ? massesMap[i] : 0;
+
+        ctx.beginPath();
+        const rDot = (mass > 0.05) ? 10 : (isActive ? 7.5 : (holesCount > 24 ? 4 : 5.5));
+        ctx.arc(pt.x, pt.y, rDot, 0, 2 * Math.PI);
+
+        if (mass > 0.05) {
+          ctx.fillStyle = '#10b981';
+          ctx.fill();
+          ctx.strokeStyle = '#ffffff';
+          ctx.lineWidth = 2;
+        } else if (isActive) {
+          ctx.fillStyle = '#065f46';
+          ctx.fill();
+          ctx.strokeStyle = '#34d399';
+          ctx.lineWidth = 1.5;
+        } else {
+          ctx.fillStyle = '#0f172a';
+          ctx.fill();
+          ctx.strokeStyle = '#64748b';
+          ctx.lineWidth = 1.2;
+        }
+        ctx.stroke();
+
+        if (holesCount <= 24 || (i % 2 === 0)) {
+          const textDist = rHoles - 22;
+          const theta = toRad(i * stepAngle);
+          const tx = cx + textDist * Math.cos(theta);
+          const ty = cy - textDist * Math.sin(theta);
+          ctx.fillStyle = (mass > 0.05) ? '#34d399' : '#94a3b8';
+          ctx.font = (mass > 0.05) ? 'bold 11px sans-serif' : '9px sans-serif';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(i.toString(), tx, ty);
+        }
+      }
+
+      // Heavy spot vector (red)
+      const hRad = toRad(heavyAngle);
+      const heavyX = cx + (rDisk - 25) * Math.cos(hRad);
+      const heavyY = cy - (rDisk - 25) * Math.sin(hRad);
+      ctx.beginPath();
+      ctx.moveTo(cx, cy); ctx.lineTo(heavyX, heavyY);
+      ctx.strokeStyle = '#ef4444';
+      ctx.lineWidth = 3;
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(heavyX, heavyY, 6, 0, 2 * Math.PI);
+      ctx.fillStyle = '#ef4444';
+      ctx.fill();
+
+      // Target vector (blue dashed)
+      const tRad = toRad(targetAngle);
+      const targetX = cx + rHoles * Math.cos(tRad);
+      const targetY = cy - rHoles * Math.sin(tRad);
+      ctx.beginPath();
+      ctx.setLineDash([4, 4]);
+      ctx.moveTo(cx, cy); ctx.lineTo(targetX, targetY);
+      ctx.strokeStyle = '#38bdf8';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.beginPath();
+      ctx.arc(targetX, targetY, 4, 0, 2 * Math.PI);
+      ctx.fillStyle = '#38bdf8';
+      ctx.fill();
+    }
+
+    holesCountInput.addEventListener('input', () => {
+      let val = parseInt(holesCountInput.value) || 16;
+      if (val < 3) val = 3;
+      if (val > 72) val = 72;
+      holesCount = val;
+      stepAngle = 360 / holesCount;
+      stepAngleDisplay.value = `${stepAngle.toFixed(2)}°`;
+      activeHoles.clear();
+      rebuildHolesButtons();
+      autoSelect(2);
+    });
+
+    canvas.addEventListener('click', (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const scaleX = canvas.width / rect.width;
+      const scaleY = canvas.height / rect.height;
+      const clickX = (e.clientX - rect.left) * scaleX;
+      const clickY = (e.clientY - rect.top) * scaleY;
+
+      const cx = canvas.width / 2;
+      const cy = canvas.height / 2;
+      const rHoles = 160;
+
+      let closest = -1;
+      let minDst = 9999;
+
+      for (let i = 0; i < holesCount; i++) {
+        const pt = getHoleCoordinates(i, cx, cy, rHoles);
+        const d = Math.hypot(clickX - pt.x, clickY - pt.y);
+        if (d < minDst) {
+          minDst = d;
+          closest = i;
+        }
+      }
+
+      if (closest !== -1 && minDst < 25) {
+        toggleHole(closest);
+      }
+    });
+
+    document.getElementById('btnAuto2').addEventListener('click', () => autoSelect(2));
+    document.getElementById('btnAuto4').addEventListener('click', () => autoSelect(4));
+    document.getElementById('btnClear').addEventListener('click', () => {
+      activeHoles.clear();
+      updateHolesUI();
+      calculate();
+    });
+
+    ['leverL', 'radiusR', 'wMax', 'wMin', 'angleHeavy'].forEach(id => {
+      document.getElementById(id).addEventListener('input', calculate);
+    });
+
+    rebuildHolesButtons();
+    autoSelect(2);
+  </script>
 </body>
 </html>
-```
-
-
-http://googleusercontent.com/youtube_content/0
