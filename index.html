@@ -76,7 +76,6 @@
       text-shadow: 0 0 12px rgba(56, 189, 248, 0.5);
     }
 
-    /* 3-КОЛОНОЧНЫЙ ГРИД НА ВЕСЬ ЭКРАН */
     .dashboard-layout {
       display: grid;
       grid-template-columns: 310px 1fr 340px;
@@ -270,7 +269,6 @@
       font-size: 0.8rem;
     }
 
-    /* Холст ротора по центру */
     canvas {
       width: 100%;
       max-width: 480px;
@@ -319,7 +317,6 @@
     .dot.heat-red { background: rgba(239, 68, 68, 0.4); border: 1px solid #ef4444; }
     .dot.heat-green { background: rgba(16, 185, 129, 0.4); border: 1px solid #10b981; }
 
-    /* Правая колонка управления углом */
     .step-buttons-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -469,7 +466,7 @@
         <div class="card">
           <div class="card-header-flex">
             <h3>Summary & Placement</h3>
-            <button class="btn-small" type="button" id="btnAuto2">Auto 2 spots</button>
+            <button class="btn-small" type="button" id="btnAuto2">Auto optimal</button>
           </div>
           <div class="res-row">
             <span>Scale amplitude difference (ΔW):</span>
@@ -482,6 +479,14 @@
           <div class="res-row">
             <span>Theoretical single mass:</span>
             <b id="resTargetMass">5.70 g</b>
+          </div>
+          <div class="res-row" style="border-top: 1px dashed var(--border); padding-top: 4px; margin-top: 4px;">
+            <span>Expected residual scale ΔW:</span>
+            <b id="resResidualDelta" style="color: #34d399;">0.00 g</b>
+          </div>
+          <div class="res-row">
+            <span>Residual unbalance (U_res):</span>
+            <b id="resResidualUnbalance" style="color: #94a3b8;">0.0 g·mm</b>
           </div>
           <div id="resSummary" class="highlight-box"></div>
           <div id="warningBox" class="warning-box" style="display: none;"></div>
@@ -501,7 +506,7 @@
         </div>
       </div>
 
-      <!-- КОЛОНКА 3: УПРАВЛЕНИЕ УГЛАМИ И КАЛИБРОВКА ЭНКОДЕРА -->
+      <!-- КОЛОНКА 3: УПРАВЛЕНИЕ УГЛАМИ, ОГРАНИЧЕНИЯ И КАЛИБРОВКА -->
       <div class="col-right">
         <div class="card">
           <div class="card-header-flex">
@@ -545,6 +550,17 @@
                 <button class="btn-step" type="button" onclick="adjustAngle(0.01)">+0.01°</button>
               </div>
             </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header-flex">
+            <h3>Spot Mass Limit</h3>
+            <span style="font-size: 0.72rem; color: #10b981;">Min 1 hole gap active</span>
+          </div>
+          <div>
+            <label>Max Mass per Spot (g) — <i>Scroll: 0.5g</i>:</label>
+            <input type="number" id="inputMaxSpotMass" value="8.00" step="0.5" min="0.5">
           </div>
         </div>
 
@@ -607,6 +623,7 @@
 
     let currentZeroOffset = parseFloat(localStorage.getItem('snezh_rotor_zero_offset')) || 0.0;
     let currentDirection = localStorage.getItem('snezh_rotor_direction') || 'CW';
+    let maxSpotMassLimit = parseFloat(localStorage.getItem('snezh_rotor_max_spot_mass')) || 8.0;
 
     let weightSpots = [];
     function rebuildWeightSpots() {
@@ -654,9 +671,27 @@
     const btnToggleCalib = document.getElementById('btnToggleCalib');
     const btnResetCalib = document.getElementById('btnResetCalib');
     const calibStatus = document.getElementById('calibStatus');
+    const inputMaxSpotMass = document.getElementById('inputMaxSpotMass');
 
     inputZeroOffset.value = currentZeroOffset.toFixed(2);
     selectDirection.value = currentDirection;
+    inputMaxSpotMass.value = maxSpotMassLimit.toFixed(2);
+
+    inputMaxSpotMass.addEventListener('input', () => {
+      maxSpotMassLimit = Math.max(0.1, parseFloat(inputMaxSpotMass.value) || 8.0);
+      localStorage.setItem('snezh_rotor_max_spot_mass', maxSpotMassLimit.toString());
+      calculate();
+    });
+
+    inputMaxSpotMass.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      const step = 0.5;
+      maxSpotMassLimit += (e.deltaY < 0 ? step : -step);
+      maxSpotMassLimit = Math.max(0.5, Math.round(maxSpotMassLimit * 10) / 10);
+      inputMaxSpotMass.value = maxSpotMassLimit.toFixed(2);
+      localStorage.setItem('snezh_rotor_max_spot_mass', maxSpotMassLimit.toString());
+      calculate();
+    });
 
     let isCalibUnlocked = false;
 
@@ -792,39 +827,31 @@
       }
     });
 
-    function findBestTwoSpots(targetAngle) {
-      let bestPair = null;
-      let minTotalMass = Infinity;
-      const targetRad = toRad(targetAngle);
+    function angularDiff(a, b) {
+      let d = Math.abs(a - b) % 360;
+      return d > 180 ? 360 - d : d;
+    }
 
-      for (let i = 0; i < weightSpots.length; i++) {
-        for (let j = i + 1; j < weightSpots.length; j++) {
-          const s1 = weightSpots[i];
-          const s2 = weightSpots[j];
-          const phi1 = toRad(s1.angle);
-          const phi2 = toRad(s2.angle);
-          const det = Math.sin(phi2 - phi1);
-          
-          if (Math.abs(det) < 1e-4) continue;
-          
-          const m1 = (Math.cos(targetRad) * Math.sin(phi2) - Math.sin(targetRad) * Math.cos(phi2)) / det;
-          const m2 = (Math.sin(targetRad) * Math.cos(phi1) - Math.cos(targetRad) * Math.sin(phi1)) / det;
-          
-          if (m1 >= -1e-4 && m2 >= -1e-4) {
-            const total = m1 + m2;
-            if (total < minTotalMass) {
-              minTotalMass = total;
-              bestPair = [s1, s2];
-            }
-          }
+    function hasAdjacentCollision(spots) {
+      for (let i = 0; i < spots.length; i++) {
+        for (let j = i + 1; j < spots.length; j++) {
+          let diff = Math.abs(spots[i].gridPos - spots[j].gridPos);
+          if (diff > TOTAL_DIVISIONS / 2) diff = TOTAL_DIVISIONS - diff;
+          if (diff < 2) return true;
         }
       }
-      return bestPair || [weightSpots[0], weightSpots[1]];
+      return false;
     }
 
     function solveMassDistribution(targetAngle, targetMass, selectedSpotsList) {
       const n = selectedSpotsList.length;
       if (n === 0) return { error: 'No weight spots selected!' };
+
+      if (targetMass <= 0.001) {
+        const resZero = {};
+        selectedSpotsList.forEach(s => resZero[s.spotNum] = 0);
+        return { masses: resZero, totalAdded: 0, maxSpot: 0, resDeltaW: 0, resU: 0 };
+      }
 
       const phi0 = toRad(targetAngle);
       const Tx = targetMass * Math.cos(phi0);
@@ -835,12 +862,21 @@
         const phi = toRad(spot.angle);
         const cosDiff = Math.cos(phi - phi0);
         if (cosDiff <= 0.05) {
-          return { error: `Spot #${spot.spotNum} is on the wrong side and cannot balance this rotor.` };
+          return { error: `Spot #${spot.spotNum} is on opposite side and cannot balance rotor.` };
         }
-        const m = targetMass / cosDiff;
+        const m = Math.round((targetMass / cosDiff) * 100) / 100;
         const res = {};
         res[spot.spotNum] = m;
-        return { masses: res, totalAdded: m };
+        const errX = m * Math.cos(phi) - Tx;
+        const errY = m * Math.sin(phi) - Ty;
+        const resMass = Math.hypot(errX, errY);
+        return { 
+          masses: res, 
+          totalAdded: m, 
+          maxSpot: m,
+          resDeltaW: (resMass * 2 * CONST_R) / CONST_L,
+          resU: resMass * CONST_R
+        };
       }
 
       if (n === 2) {
@@ -851,57 +887,171 @@
         const det = Math.sin(phi2 - phi1);
 
         if (Math.abs(det) < 1e-4) {
-          return { error: 'Selected two spots are collinear. Please select distinct locations.' };
+          return { error: 'Selected two spots are collinear.' };
         }
         const m1 = (Tx * Math.sin(phi2) - Ty * Math.cos(phi2)) / det;
         const m2 = (Ty * Math.cos(phi1) - Tx * Math.sin(phi1)) / det;
 
         if (m1 < -0.01 || m2 < -0.01) {
-          return { error: 'Target vector is outside the sector between these two spots. Add another spot or pick spots enclosing the target.' };
+          return { error: 'Target vector is outside selected sector.' };
         }
         const res = {};
-        res[s1.spotNum] = Math.max(0, m1);
-        res[s2.spotNum] = Math.max(0, m2);
-        return { masses: res, totalAdded: res[s1.spotNum] + res[s2.spotNum] };
+        res[s1.spotNum] = Math.round(Math.max(0, m1) * 100) / 100;
+        res[s2.spotNum] = Math.round(Math.max(0, m2) * 100) / 100;
+        const total = res[s1.spotNum] + res[s2.spotNum];
+        
+        const sumX = res[s1.spotNum] * Math.cos(phi1) + res[s2.spotNum] * Math.cos(phi2);
+        const sumY = res[s1.spotNum] * Math.sin(phi1) + res[s2.spotNum] * Math.sin(phi2);
+        const resMass = Math.hypot(sumX - Tx, sumY - Ty);
+
+        return { 
+          masses: res, 
+          totalAdded: total, 
+          maxSpot: Math.max(res[s1.spotNum], res[s2.spotNum]),
+          resDeltaW: (resMass * 2 * CONST_R) / CONST_L,
+          resU: resMass * CONST_R
+        };
       }
 
       const cosA = selectedSpotsList.map(s => Math.cos(toRad(s.angle)));
       const sinA = selectedSpotsList.map(s => Math.sin(toRad(s.angle)));
-      let weights = new Array(n).fill(targetMass / n);
-      let step = 0.05;
 
-      for (let iter = 0; iter < 1200; iter++) {
+      const perpX = -Math.sin(phi0);
+      const perpY = Math.cos(phi0);
+      let hasPositive = false, hasNegative = false;
+
+      for (let i = 0; i < n; i++) {
+        const forward = cosA[i] * Math.cos(phi0) + sinA[i] * Math.sin(phi0);
+        const side = cosA[i] * perpX + sinA[i] * perpY;
+        if (forward > -0.1) {
+          if (side > 1e-3) hasPositive = true;
+          if (side < -1e-3) hasNegative = true;
+          if (Math.abs(side) <= 1e-3) { hasPositive = true; hasNegative = true; }
+        }
+      }
+
+      if (!hasPositive || !hasNegative) {
+        return { error: 'Selected spots do not enclose target angle. Pick spots on both sides.' };
+      }
+
+      let weights = new Float64Array(n).fill(targetMass / n);
+      let y = new Float64Array(weights);
+      let t = 1.0;
+
+      for (let iter = 0; iter < 500; iter++) {
         let curX = 0, curY = 0;
         for (let i = 0; i < n; i++) {
-          curX += weights[i] * cosA[i];
-          curY += weights[i] * sinA[i];
+          curX += y[i] * cosA[i];
+          curY += y[i] * sinA[i];
         }
 
-        const errX = curX - Tx;
-        const errY = curY - Ty;
+        const rx = curX - Tx;
+        const ry = curY - Ty;
 
+        if (Math.hypot(rx, ry) < 0.002 && iter > 20) break;
+
+        let weightsNext = new Float64Array(n);
         for (let i = 0; i < n; i++) {
-          const grad = (errX * cosA[i] + errY * sinA[i]) + 0.02 * weights[i];
-          weights[i] = Math.max(0, weights[i] - step * grad);
+          const grad = 2 * (rx * cosA[i] + ry * sinA[i]) + 0.005 * y[i];
+          weightsNext[i] = Math.max(0, y[i] - (1.0 / (n * 2.5)) * grad);
         }
+
+        const tNext = (1.0 + Math.sqrt(1.0 + 4.0 * t * t)) / 2.0;
+        const beta = (t - 1.0) / tNext;
+        for (let i = 0; i < n; i++) {
+          y[i] = weightsNext[i] + beta * (weightsNext[i] - weights[i]);
+          weights[i] = weightsNext[i];
+        }
+        t = tNext;
       }
 
-      let finalX = 0, finalY = 0, totalM = 0;
+      let sumX = 0, sumY = 0, totalM = 0, maxSingle = 0;
       const res = {};
       for (let i = 0; i < n; i++) {
-        finalX += weights[i] * cosA[i];
-        finalY += weights[i] * sinA[i];
-        const val = weights[i] < 0.02 ? 0 : weights[i];
+        const val = weights[i] < 0.01 ? 0 : Math.round(weights[i] * 100) / 100;
         res[selectedSpotsList[i].spotNum] = val;
+        sumX += val * cosA[i];
+        sumY += val * sinA[i];
         totalM += val;
+        if (val > maxSingle) maxSingle = val;
       }
 
-      const residue = Math.hypot(finalX - Tx, finalY - Ty);
-      if (residue > 0.4) {
-        return { error: 'Cannot balance rotor only with selected spots. Enclose the target sector with available spots.' };
+      const resMass = Math.hypot(sumX - Tx, sumY - Ty);
+      if (resMass > 0.35) {
+        return { error: 'Geometric limitation: selected spots cannot achieve balance.' };
       }
 
-      return { masses: res, totalAdded: totalM };
+      return { 
+        masses: res, 
+        totalAdded: totalM, 
+        maxSpot: maxSingle,
+        resDeltaW: (resMass * 2 * CONST_R) / CONST_L,
+        resU: resMass * CONST_R
+      };
+    }
+
+    function findBestSpotsAuto(targetAngle, targetMass, limit) {
+      if (targetMass <= 0.001) {
+        return [weightSpots[0], weightSpots[2]];
+      }
+
+      const sectorSpots = weightSpots
+        .filter(s => angularDiff(s.angle, targetAngle) <= 65)
+        .sort((a, b) => angularDiff(a.angle, targetAngle) - angularDiff(b.angle, targetAngle));
+
+      const pool = sectorSpots.length >= 8 ? sectorSpots.slice(0, 10) : weightSpots;
+
+      let bestCombination = null;
+      let minCost = Infinity;
+
+      function searchCombinations(startIdx, currentSpots, targetCount) {
+        if (currentSpots.length === targetCount) {
+          const sol = solveMassDistribution(targetAngle, targetMass, currentSpots);
+          if (!sol.error) {
+            const isWithinLimit = (sol.maxSpot <= limit + 0.05);
+            const cost = (isWithinLimit ? 0 : 5000) + sol.totalAdded + (sol.maxSpot * 0.5);
+            if (cost < minCost) {
+              minCost = cost;
+              bestCombination = [...currentSpots];
+            }
+          }
+          return;
+        }
+
+        for (let i = startIdx; i < pool.length; i++) {
+          const candidate = pool[i];
+          let collision = false;
+          for (let c of currentSpots) {
+            let diff = Math.abs(c.gridPos - candidate.gridPos);
+            if (diff > TOTAL_DIVISIONS / 2) diff = TOTAL_DIVISIONS - diff;
+            if (diff < 2) {
+              collision = true;
+              break;
+            }
+          }
+          if (collision) continue;
+
+          currentSpots.push(candidate);
+          searchCombinations(i + 1, currentSpots, targetCount);
+          currentSpots.pop();
+        }
+      }
+
+      searchCombinations(0, [], 2);
+      if (bestCombination && minCost < 4000) {
+        return bestCombination;
+      }
+
+      for (let k = 3; k <= 5; k++) {
+        minCost = Infinity;
+        bestCombination = null;
+        searchCombinations(0, [], k);
+        if (bestCombination && minCost < 4000) {
+          return bestCombination;
+        }
+      }
+
+      return bestCombination || [weightSpots[0], weightSpots[2]];
     }
 
     function calculate() {
@@ -944,43 +1094,67 @@
       let chosenSpots = [];
 
       if (!isManualSelection) {
-        const [spotA, spotB] = findBestTwoSpots(targetAngle);
-        chosenSpots = [spotA, spotB];
+        chosenSpots = findBestSpotsAuto(targetAngle, targetMass, maxSpotMassLimit);
         manuallySelectedSpots.clear();
-        manuallySelectedSpots.add(spotA.spotNum);
-        manuallySelectedSpots.add(spotB.spotNum);
+        chosenSpots.forEach(s => manuallySelectedSpots.add(s.spotNum));
       } else {
         chosenSpots = weightSpots.filter(s => manuallySelectedSpots.has(s.spotNum));
       }
 
       const warnBox = document.getElementById('warningBox');
       const sumBox = document.getElementById('resSummary');
+      const resDeltaDisplay = document.getElementById('resResidualDelta');
+      const resUDisplay = document.getElementById('resResidualUnbalance');
 
       if (chosenSpots.length === 0) {
         warnBox.style.display = 'block';
-        warnBox.innerText = 'No spots selected! Click spots on drawing or click "Auto 2 spots".';
+        warnBox.innerText = 'No spots selected! Click spots on drawing or click "Auto optimal".';
         sumBox.innerHTML = 'No spots selected';
+        resDeltaDisplay.innerText = `${deltaW.toFixed(2)} g`;
+        resUDisplay.innerText = `${(targetMass * R).toFixed(1)} g·mm`;
         draw(angleHeavy, targetAngle, {}, deltaW);
         return;
       }
 
+      const hasCollision = hasAdjacentCollision(chosenSpots);
       const result = solveMassDistribution(targetAngle, targetMass, chosenSpots);
 
       if (result.error) {
         warnBox.style.display = 'block';
         warnBox.innerText = '⚠️ ' + result.error;
         sumBox.innerHTML = 'Balancing impossible with current spot choice';
+        resDeltaDisplay.innerText = `${deltaW.toFixed(2)} g`;
+        resUDisplay.innerText = `${(targetMass * R).toFixed(1)} g·mm`;
         draw(angleHeavy, targetAngle, {}, deltaW);
       } else {
-        warnBox.style.display = 'none';
-        let html = '<b>Recommended Counterweights:</b><br>';
+        let isLimitExceeded = (result.maxSpot > maxSpotMassLimit + 0.05);
+
+        if (hasCollision) {
+          warnBox.style.display = 'block';
+          warnBox.innerText = '⚠️ Collision detected: weights cannot be in adjacent holes! Keep at least 1 hole gap.';
+        } else if (isLimitExceeded) {
+          warnBox.style.display = 'block';
+          warnBox.innerText = `⚠️ Mass limit (${maxSpotMassLimit}g) exceeded! Max required: ${result.maxSpot.toFixed(2)}g. Add more separated holes.`;
+        } else {
+          warnBox.style.display = 'none';
+        }
+
+        // Обновление плашки остаточного дисбаланса
+        const resDeltaVal = result.resDeltaW || 0;
+        const resUVal = result.resU || 0;
+        resDeltaDisplay.innerText = `${resDeltaVal.toFixed(2)} g ${resDeltaVal <= 0.05 ? '(PASS)' : ''}`;
+        resDeltaDisplay.style.color = resDeltaVal <= 0.05 ? '#34d399' : '#f59e0b';
+        resUDisplay.innerText = `${resUVal.toFixed(1)} g·mm`;
+
+        let html = `<b>Recommended Counterweights (${chosenSpots.length} spots, gap ≥ 1 hole):</b><br>`;
         let countNonZero = 0;
 
         chosenSpots.forEach(spot => {
           const m = result.masses[spot.spotNum] || 0;
           if (m > 0.01) {
             countNonZero++;
-            html += `• Weight Spot <b>#${spot.spotNum}</b> (${spot.angle.toFixed(1)}°): <b>${m.toFixed(2)} g</b><br>`;
+            const color = (m > maxSpotMassLimit + 0.05 || hasCollision) ? '#f87171' : '#ffffff';
+            html += `• Weight Spot <b>#${spot.spotNum}</b> (${spot.angle.toFixed(1)}°): <b style="color:${color}">${m.toFixed(2)} g</b><br>`;
           }
         });
 
@@ -1057,7 +1231,7 @@
       ctx.strokeStyle = '#334155';
       ctx.lineWidth = 1;
       ctx.moveTo(cx - 14, cy); ctx.lineTo(cx + 14, cy);
-      ctx.moveTo(cx, cy - 14); ctx.lineTo(cx, cy + 14);
+      ctx.moveTo(cx, cy - 14); ctx.lineTo(cx + 14, cy);
       ctx.stroke();
 
       ctx.fillStyle = '#64748b';
@@ -1102,12 +1276,18 @@
         const mass = activeSpotsMap ? (activeSpotsMap[spot.spotNum] || 0) : 0;
         const isManuallyPicked = manuallySelectedSpots.has(spot.spotNum);
         const hasWeight = (mass > 0.01);
+        const isExceeded = (mass > maxSpotMassLimit + 0.05);
 
         ctx.beginPath();
         const rDot = hasWeight ? 8 : (isManuallyPicked ? 6 : 4);
         ctx.arc(hx, hy, rDot, 0, 2 * Math.PI);
 
-        if (hasWeight) {
+        if (isExceeded) {
+          ctx.fillStyle = '#ef4444';
+          ctx.fill();
+          ctx.strokeStyle = '#ffffff';
+          ctx.lineWidth = 2;
+        } else if (hasWeight) {
           ctx.fillStyle = '#10b981';
           ctx.fill();
           ctx.strokeStyle = '#ffffff';
@@ -1128,7 +1308,7 @@
         const textDist = rHoles - 20;
         const tx = cx + textDist * cosT;
         const ty = cy + textDist * sinT;
-        ctx.fillStyle = hasWeight ? '#34d399' : '#94a3b8';
+        ctx.fillStyle = isExceeded ? '#f87171' : (hasWeight ? '#34d399' : '#94a3b8');
         ctx.font = hasWeight ? 'bold 10px sans-serif' : '8px sans-serif';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
