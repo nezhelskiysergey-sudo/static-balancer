@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Static Balancing Calculator (36 Weight Spots)</title>
+  <title>Rotor Static Balancing Calculator (36 Weight Spots)</title>
   <style>
     :root {
       --bg-dark: #0f172a;
@@ -154,12 +154,22 @@
       border-radius: 8px;
       padding: 10px 14px;
       margin-bottom: 12px;
+      transition: all 0.3s;
+    }
+
+    .delta-badge.balanced {
+      background: rgba(16, 185, 129, 0.15);
+      border-color: #10b981;
     }
 
     .delta-badge .title {
       font-size: 0.85rem;
       color: var(--accent);
       font-weight: 600;
+    }
+
+    .delta-badge.balanced .title {
+      color: #34d399;
     }
 
     .delta-badge .value {
@@ -177,19 +187,20 @@
     }
 
     .angle-top-row {
-      display: flex;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
       gap: 10px;
       align-items: flex-end;
       margin-bottom: 10px;
     }
 
     .angle-top-row .input-wrapper {
-      flex: 1;
+      width: 100%;
     }
 
     .step-buttons-grid {
       display: grid;
-      grid-template-columns: repeat(2, 1fr);
+      grid-template-columns: repeat(3, 1fr);
       gap: 8px;
     }
 
@@ -197,19 +208,35 @@
       background: #0f172a;
       border: 1px solid var(--border);
       border-radius: 6px;
-      padding: 6px;
+      padding: 8px 6px;
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 5px;
+      gap: 6px;
+      cursor: ns-resize;
+      user-select: none;
+      transition: all 0.2s;
+    }
+
+    .step-group:hover {
+      border-color: var(--accent);
+      background: #132238;
     }
 
     .step-group-title {
-      font-size: 0.7rem;
-      font-weight: 600;
-      color: var(--text-dim);
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--accent);
       text-transform: uppercase;
       letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .step-scroll-hint {
+      font-size: 0.65rem;
+      color: var(--text-dim);
     }
 
     .step-btn-pair {
@@ -225,7 +252,7 @@
       color: var(--text);
       padding: 5px 0;
       border-radius: 4px;
-      font-size: 0.8rem;
+      font-size: 0.78rem;
       font-weight: 600;
       cursor: pointer;
       transition: all 0.15s;
@@ -354,8 +381,9 @@
     .dot.weight { background: var(--weight-spot); }
     .dot.divider { background: var(--divider-color); border-radius: 2px; height: 3px; width: 12px; }
     .dot.target { background: #38bdf8; }
+    .dot.heat-red { background: rgba(239, 68, 68, 0.4); border: 1px solid #ef4444; }
+    .dot.heat-green { background: rgba(16, 185, 129, 0.4); border: 1px solid #10b981; }
 
-    /* Блок технических параметров под чертежом */
     .specs-card {
       background: #151f30;
       border: 1px solid var(--border);
@@ -402,10 +430,9 @@
 </head>
 <body>
   <div class="container">
-    <h1>Static Balancing Calculator</h1>
+    <h1>Rotor Static Balancing Calculator</h1>
 
     <div class="layout">
-      <!-- Левая колонка: Ввод параметров и результаты на самом верху -->
       <div>
         <div class="mode-selector">
           <div class="mode-title">Input Calculation Mode</div>
@@ -437,9 +464,9 @@
           <input type="number" id="directDelta" value="9.00" step="0.01" disabled>
         </div>
 
-        <div class="delta-badge">
+        <div class="delta-badge" id="deltaBadge">
           <div>
-            <div class="title">EFFECTIVE SCALE DELTA (ΔW)</div>
+            <div class="title" id="deltaBadgeTitle">EFFECTIVE SCALE DELTA (ΔW)</div>
             <div style="font-size: 0.75rem; color: var(--text-dim);" id="deltaSubText">Wmax − Wmin amplitude</div>
           </div>
           <div class="value" id="topDeltaDisplay">9.00 g</div>
@@ -448,21 +475,40 @@
         <div class="angle-control-card">
           <div class="angle-top-row">
             <div class="input-wrapper">
-              <label>Heavy spot angle, θ_heavy (° CW):</label>
-              <input type="number" id="angleHeavy" value="270.0" step="2" min="0" max="360">
+              <label>Heavy spot, θ_heavy (° CW) — <i>Scroll: 10°</i></label>
+              <input type="number" id="angleHeavy" value="270.0" step="10">
+            </div>
+            <div class="input-wrapper">
+              <label>Light spot (180° opp., CW):</label>
+              <input type="text" id="lightAngleDisplay" value="90.00°" disabled readonly>
             </div>
           </div>
           
           <div class="step-buttons-grid">
-            <div class="step-group">
-              <span class="step-group-title">Fine (0.1°)</span>
+            <!-- Зона 1: Coarse (1°) -->
+            <div class="step-group" id="scrollCoarse" title="Scroll wheel here for ±1°">
+              <div class="step-group-title">Coarse (1°)</div>
+              <div class="step-scroll-hint">Scroll or click</div>
+              <div class="step-btn-pair">
+                <button class="btn-step" type="button" onclick="adjustAngle(-1)">-1°</button>
+                <button class="btn-step" type="button" onclick="adjustAngle(1)">+1°</button>
+              </div>
+            </div>
+
+            <!-- Зона 2: Fine (0.1°) -->
+            <div class="step-group" id="scrollFine" title="Scroll wheel here for ±0.1°">
+              <div class="step-group-title">Fine (0.1°)</div>
+              <div class="step-scroll-hint">Scroll or click</div>
               <div class="step-btn-pair">
                 <button class="btn-step" type="button" onclick="adjustAngle(-0.1)">-0.1°</button>
                 <button class="btn-step" type="button" onclick="adjustAngle(0.1)">+0.1°</button>
               </div>
             </div>
-            <div class="step-group">
-              <span class="step-group-title">Ultra (0.01°)</span>
+
+            <!-- Зона 3: Ultra (0.01°) -->
+            <div class="step-group" id="scrollUltra" title="Scroll wheel here for ±0.01°">
+              <div class="step-group-title">Ultra (0.01°)</div>
+              <div class="step-scroll-hint">Scroll or click</div>
               <div class="step-btn-pair">
                 <button class="btn-step" type="button" onclick="adjustAngle(-0.01)">-0.01°</button>
                 <button class="btn-step" type="button" onclick="adjustAngle(0.01)">+0.01°</button>
@@ -471,7 +517,6 @@
           </div>
         </div>
 
-        <!-- Итоgи расчета теперь сразу перед gлазами без прокрутки -->
         <div class="card">
           <div class="card-header-flex">
             <h3>Summary & Placement</h3>
@@ -494,18 +539,17 @@
         </div>
       </div>
 
-      <!-- Правая колонка: Чертёж и блок технических характеристик под ним -->
       <div>
         <canvas id="diskCanvas" width="520" height="520"></canvas>
         <div class="hint">Click any weight spot circle (1–36) on drawing to toggle placement</div>
         <div class="legend">
-          <div class="legend-item"><div class="dot heavy"></div> Heavy spot</div>
+          <div class="legend-item"><div class="dot heat-red"></div> Heavy side (excess)</div>
+          <div class="legend-item"><div class="dot heat-green"></div> Light side (add weights)</div>
           <div class="legend-item"><div class="dot target"></div> Target vector</div>
-          <div class="legend-item"><div class="dot divider"></div> Divider (12 total)</div>
+          <div class="legend-item"><div class="dot divider"></div> Divider</div>
           <div class="legend-item"><div class="dot weight"></div> Counterweight</div>
         </div>
 
-        <!-- Перенесённый блок спецификации ротора -->
         <div class="specs-card">
           <div class="specs-subtitle">
             36 weight spots (numbered 1 to 36, CW) separated by 12 dividers (red)
@@ -567,6 +611,7 @@
     const wMinInput = document.getElementById('wMin');
     const directDeltaInput = document.getElementById('directDelta');
     const angleHeavyInput = document.getElementById('angleHeavy');
+    const lightAngleDisplay = document.getElementById('lightAngleDisplay');
 
     function toRad(deg) { return (deg * Math.PI) / 180; }
 
@@ -591,38 +636,78 @@
     function adjustAngle(delta) {
       let current = parseFloat(angleHeavyInput.value) || 0;
       current += delta;
-      
-      const decimals = delta.toString().includes('.') ? delta.toString().split('.')[1].length : 1;
-      const factor = Math.pow(10, decimals);
-      
+
+      const decimals = delta.toString().includes('.') ? delta.toString().split('.')[1].length : 0;
+      const factor = Math.pow(10, Math.max(decimals, 1));
+
       current = Math.round((((current % 360) + 360) % 360) * factor) / factor;
-      angleHeavyInput.value = current.toFixed(decimals);
+      angleHeavyInput.value = current.toFixed(Math.max(decimals, 1));
       calculate();
     }
 
-    function findBestTwoSpots(targetAngleCW) {
-      let bestA = null;
-      let bestB = null;
-      let minDiffA = 999;
-      let minDiffB = 999;
+    // 1. Колесико над основным полем ввода — шаг 10°
+    angleHeavyInput.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      adjustAngle(e.deltaY < 0 ? 10 : -10);
+    });
 
-      weightSpots.forEach(spot => {
-        let diff = (spot.angleCW - targetAngleCW + 360) % 360;
-        if (diff > 180) {
-          let dist = 360 - diff;
-          if (dist < minDiffA) {
-            minDiffA = dist;
-            bestA = spot;
-          }
-        } else {
-          if (diff < minDiffB) {
-            minDiffB = diff;
-            bestB = spot;
+    // 2. Колесико над блоком COARSE — шаг 1°
+    document.getElementById('scrollCoarse').addEventListener('wheel', (e) => {
+      e.preventDefault();
+      adjustAngle(e.deltaY < 0 ? 1 : -1);
+    });
+
+    // 3. Колесико над блоком FINE — шаг 0.1°
+    document.getElementById('scrollFine').addEventListener('wheel', (e) => {
+      e.preventDefault();
+      adjustAngle(e.deltaY < 0 ? 0.1 : -0.1);
+    });
+
+    // 4. Колесико над блоком ULTRA — шаг 0.01°
+    document.getElementById('scrollUltra').addEventListener('wheel', (e) => {
+      e.preventDefault();
+      adjustAngle(e.deltaY < 0 ? 0.01 : -0.01);
+    });
+
+    // Клавиатурные стрелки в основном поле ввода — шаг 10°
+    angleHeavyInput.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        adjustAngle(10);
+      } else if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        adjustAngle(-10);
+      }
+    });
+
+    function findBestTwoSpots(targetAngleCW) {
+      let bestPair = null;
+      let minTotalMass = Infinity;
+      const targetRad = toRad(targetAngleCW);
+
+      for (let i = 0; i < weightSpots.length; i++) {
+        for (let j = i + 1; j < weightSpots.length; j++) {
+          const s1 = weightSpots[i];
+          const s2 = weightSpots[j];
+          const phi1 = toRad(s1.angleCW);
+          const phi2 = toRad(s2.angleCW);
+          const det = Math.sin(phi2 - phi1);
+          
+          if (Math.abs(det) < 1e-4) continue;
+          
+          const m1 = (Math.cos(targetRad) * Math.sin(phi2) - Math.sin(targetRad) * Math.cos(phi2)) / det;
+          const m2 = (Math.sin(targetRad) * Math.cos(phi1) - Math.cos(targetRad) * Math.sin(phi1)) / det;
+          
+          if (m1 >= -1e-4 && m2 >= -1e-4) {
+            const total = m1 + m2;
+            if (total < minTotalMass) {
+              minTotalMass = total;
+              bestPair = [s1, s2];
+            }
           }
         }
-      });
-
-      return [bestA, bestB];
+      }
+      return bestPair || [weightSpots[0], weightSpots[1]];
     }
 
     function solveMassDistribution(targetAngleCW, targetMass, selectedSpotsList) {
@@ -710,7 +795,8 @@
     function calculate() {
       const L = CONST_L;
       const R = CONST_R;
-      let angleHeavy = parseFloat(angleHeavyInput.value) || 0;
+      let rawAngle = parseFloat(angleHeavyInput.value) || 0;
+      let angleHeavy = ((rawAngle % 360) + 360) % 360;
 
       let deltaW = 0;
       if (modeMinMaxRadio.checked) {
@@ -722,13 +808,24 @@
         deltaW = Math.max(0, parseFloat(directDeltaInput.value) || 0);
       }
 
+      const deltaBadge = document.getElementById('deltaBadge');
+      const badgeTitle = document.getElementById('deltaBadgeTitle');
+
+      if (deltaW <= 0.02) {
+        deltaBadge.classList.add('balanced');
+        badgeTitle.innerText = 'ROTOR BALANCED (ΔW ≈ 0)';
+      } else {
+        deltaBadge.classList.remove('balanced');
+        badgeTitle.innerText = 'EFFECTIVE SCALE DELTA (ΔW)';
+      }
+
       document.getElementById('topDeltaDisplay').innerText = `${deltaW.toFixed(2)} g`;
       document.getElementById('resDeltaW').innerText = `${deltaW.toFixed(2)} g`;
 
-      angleHeavy = ((angleHeavy % 360) + 360) % 360;
       const targetAngleCW = (angleHeavy + 180) % 360;
       const targetMass = Math.max(0, (deltaW * L) / (2 * R));
 
+      lightAngleDisplay.value = `${targetAngleCW.toFixed(2)}°`;
       document.getElementById('resTargetAngle').innerText = `${targetAngleCW.toFixed(2)}°`;
       document.getElementById('resTargetMass').innerText = `${targetMass.toFixed(2)} g`;
 
@@ -751,7 +848,7 @@
         warnBox.style.display = 'block';
         warnBox.innerText = 'No weight spots selected! Click spots on drawing or click "Auto 2 spots".';
         sumBox.innerHTML = 'No spots selected';
-        draw(angleHeavy, targetAngleCW, {});
+        draw(angleHeavy, targetAngleCW, {}, deltaW);
         return;
       }
 
@@ -761,7 +858,7 @@
         warnBox.style.display = 'block';
         warnBox.innerText = '⚠️ ' + result.error;
         sumBox.innerHTML = 'Balancing impossible with current spot choice';
-        draw(angleHeavy, targetAngleCW, {});
+        draw(angleHeavy, targetAngleCW, {}, deltaW);
       } else {
         warnBox.style.display = 'none';
         let html = '<b>Recommended Counterweights:</b><br>';
@@ -776,7 +873,7 @@
         });
 
         if (countNonZero === 0) {
-          html += '<i>No counterweight needed (all masses = 0)</i><br>';
+          html += '<i>Rotor is perfectly balanced. No weights required.</i><br>';
         }
 
         html += `<span style="font-size: 0.85em; opacity: 0.85; margin-top: 4px; display:inline-block;">
@@ -784,11 +881,11 @@
         </span>`;
 
         sumBox.innerHTML = html;
-        draw(angleHeavy, targetAngleCW, result.masses);
+        draw(angleHeavy, targetAngleCW, result.masses, deltaW);
       }
     }
 
-    function draw(heavyAngleCW, targetAngleCW, activeSpotsMap) {
+    function draw(heavyAngleCW, targetAngleCW, activeSpotsMap, deltaW) {
       const cx = canvas.width / 2;
       const cy = canvas.height / 2;
       const rDisk = 225;
@@ -796,9 +893,43 @@
 
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+      if (deltaW <= 0.02) {
+        const balGrad = ctx.createRadialGradient(cx, cy, 10, cx, cy, rDisk);
+        balGrad.addColorStop(0, 'rgba(16, 185, 129, 0.22)');
+        balGrad.addColorStop(0.85, 'rgba(16, 185, 129, 0.08)');
+        balGrad.addColorStop(1, 'rgba(16, 185, 129, 0)');
+        
+        ctx.beginPath();
+        ctx.arc(cx, cy, rDisk, 0, 2 * Math.PI);
+        ctx.fillStyle = balGrad;
+        ctx.fill();
+      } else {
+        const hRad = toRad(heavyAngleCW);
+        const cosH = Math.cos(hRad);
+        const sinH = Math.sin(hRad);
+
+        const xGreen = cx - rDisk * cosH;
+        const yGreen = cy - rDisk * sinH;
+        const xRed = cx + rDisk * cosH;
+        const yRed = cy + rDisk * sinH;
+
+        const heatGrad = ctx.createLinearGradient(xGreen, yGreen, xRed, yRed);
+        heatGrad.addColorStop(0, 'rgba(16, 185, 129, 0.28)');
+        heatGrad.addColorStop(0.45, 'rgba(16, 185, 129, 0.04)');
+        heatGrad.addColorStop(0.55, 'rgba(239, 68, 68, 0.04)');
+        heatGrad.addColorStop(1, 'rgba(239, 68, 68, 0.32)');
+
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(cx, cy, rDisk, 0, 2 * Math.PI);
+        ctx.fillStyle = heatGrad;
+        ctx.fill();
+        ctx.restore();
+      }
+
       ctx.beginPath();
       ctx.arc(cx, cy, rDisk, 0, 2 * Math.PI);
-      ctx.strokeStyle = '#38bdf8';
+      ctx.strokeStyle = (deltaW <= 0.02) ? '#10b981' : '#38bdf8';
       ctx.lineWidth = 2.5;
       ctx.stroke();
 
@@ -813,7 +944,7 @@
       ctx.strokeStyle = '#334155';
       ctx.lineWidth = 1;
       ctx.moveTo(cx - 15, cy); ctx.lineTo(cx + 15, cy);
-      ctx.moveTo(cx, cy - 15); ctx.lineTo(cx, cy + 15);
+      ctx.moveTo(cx, cy - 15); ctx.lineTo(cx + 15, cy);
       ctx.stroke();
 
       for (let i = 0; i < TOTAL_DIVISIONS; i += 4) {
@@ -875,33 +1006,41 @@
         ctx.fillText(spot.spotNum.toString(), tx, ty);
       });
 
-      const hRad = toRad(heavyAngleCW);
-      const heavyX = cx + (rDisk - 20) * Math.cos(hRad);
-      const heavyY = cy + (rDisk - 20) * Math.sin(hRad);
-      ctx.beginPath();
-      ctx.moveTo(cx, cy); ctx.lineTo(heavyX, heavyY);
-      ctx.strokeStyle = '#ef4444';
-      ctx.lineWidth = 3;
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.arc(heavyX, heavyY, 6, 0, 2 * Math.PI);
-      ctx.fillStyle = '#ef4444';
-      ctx.fill();
+      if (deltaW > 0.02) {
+        const hRad = toRad(heavyAngleCW);
+        const heavyX = cx + (rDisk - 20) * Math.cos(hRad);
+        const heavyY = cy + (rDisk - 20) * Math.sin(hRad);
+        ctx.beginPath();
+        ctx.moveTo(cx, cy); ctx.lineTo(heavyX, heavyY);
+        ctx.strokeStyle = '#ef4444';
+        ctx.lineWidth = 3;
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(heavyX, heavyY, 6, 0, 2 * Math.PI);
+        ctx.fillStyle = '#ef4444';
+        ctx.fill();
 
-      const tRad = toRad(targetAngleCW);
-      const targetX = cx + rHoles * Math.cos(tRad);
-      const targetY = cy + rHoles * Math.sin(tRad);
-      ctx.beginPath();
-      ctx.setLineDash([4, 4]);
-      ctx.moveTo(cx, cy); ctx.lineTo(targetX, targetY);
-      ctx.strokeStyle = '#38bdf8';
-      ctx.lineWidth = 2;
-      ctx.stroke();
-      ctx.setLineDash([]);
-      ctx.beginPath();
-      ctx.arc(targetX, targetY, 4, 0, 2 * Math.PI);
-      ctx.fillStyle = '#38bdf8';
-      ctx.fill();
+        const tRad = toRad(targetAngleCW);
+        const targetX = cx + rHoles * Math.cos(tRad);
+        const targetY = cy + rHoles * Math.sin(tRad);
+        ctx.beginPath();
+        ctx.setLineDash([4, 4]);
+        ctx.moveTo(cx, cy); ctx.lineTo(targetX, targetY);
+        ctx.strokeStyle = '#38bdf8';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.beginPath();
+        ctx.arc(targetX, targetY, 4, 0, 2 * Math.PI);
+        ctx.fillStyle = '#38bdf8';
+        ctx.fill();
+      } else {
+        ctx.fillStyle = '#10b981';
+        ctx.font = 'bold 14px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('BALANCED', cx, cy - 26);
+      }
     }
 
     canvas.addEventListener('click', (e) => {
