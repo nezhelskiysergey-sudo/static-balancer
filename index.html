@@ -30,119 +30,180 @@
       color: var(--text);
       display: flex;
       justify-content: center;
-      padding: 20px 14px 42px;
+      align-items: center;
       min-height: 100vh;
-      position: relative;
+      padding: 10px 16px;
+      overflow-x: hidden;
     }
 
     .container {
       width: 100%;
-      max-width: 1100px;
+      max-width: 1560px;
       background-color: var(--card-bg);
       border: 1px solid var(--border);
       border-radius: 12px;
-      padding: 24px;
-      padding-bottom: 40px;
+      padding: 16px 20px;
       box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
       position: relative;
     }
 
+    .header-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 8px;
+    }
+
     h1 {
-      font-size: 1.45rem;
-      margin-bottom: 18px;
+      font-size: 1.3rem;
       color: var(--accent);
+      margin: 0;
     }
 
-    .layout {
+    .brand-mark-header {
+      font-size: 1.15rem;
+      font-weight: 900;
+      letter-spacing: 3px;
+      color: #64748b;
+      user-select: none;
+      transition: all 0.2s;
+    }
+
+    .brand-mark-header:hover {
+      color: var(--accent);
+      text-shadow: 0 0 12px rgba(56, 189, 248, 0.5);
+    }
+
+    /* 3-КОЛОНОЧНЫЙ ГРИД НА ВЕСЬ ЭКРАН */
+    .dashboard-layout {
       display: grid;
-      grid-template-columns: 1.15fr 1fr;
-      gap: 24px;
+      grid-template-columns: 310px 1fr 340px;
+      gap: 16px;
+      align-items: start;
     }
 
-    @media (max-width: 880px) {
-      .layout {
-        grid-template-columns: 1fr;
+    @media (max-width: 1180px) {
+      .dashboard-layout {
+        grid-template-columns: 1fr 1fr;
+      }
+      .col-center {
+        grid-column: span 2;
+        order: -1;
+      }
+      body {
+        align-items: flex-start;
       }
     }
 
-    .input-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
+    .col-left, .col-right {
+      display: flex;
+      flex-direction: column;
       gap: 10px;
     }
 
-    .input-group {
-      margin-bottom: 10px;
+    .col-center {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .card {
+      background: #151f30;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 12px;
+    }
+
+    .card-header-flex {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 4px;
+    }
+
+    .card h3 {
+      font-size: 0.85rem;
+      color: var(--text);
+      margin: 0;
+    }
+
+    .btn-small {
+      background: transparent;
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      padding: 2px 7px;
+      border-radius: 4px;
+      font-size: 0.72rem;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .btn-small:hover {
+      background: rgba(56, 189, 248, 0.15);
     }
 
     label {
       display: block;
-      font-size: 0.8rem;
+      font-size: 0.75rem;
       font-weight: 500;
-      margin-bottom: 4px;
+      margin-bottom: 3px;
       color: var(--text-dim);
     }
 
-    input[type="number"], input[type="text"] {
+    input[type="number"], input[type="text"], select {
       width: 100%;
       background: #0f172a;
       border: 1px solid var(--border);
       color: var(--text);
-      padding: 8px 10px;
+      padding: 6px 8px;
       border-radius: 6px;
-      font-size: 0.9rem;
+      font-size: 0.85rem;
       outline: none;
       transition: all 0.2s;
     }
 
-    input[type="number"]:focus {
+    input[type="number"]:focus, select:focus {
       border-color: var(--accent);
     }
 
-    input:disabled {
+    input:disabled, select:disabled {
       background: #1e293b !important;
       color: #64748b !important;
       border-color: #334155 !important;
       cursor: not-allowed;
     }
 
-    .mode-selector {
-      background: #151f30;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 12px;
-      margin-bottom: 14px;
-    }
-
-    .mode-title {
-      font-size: 0.82rem;
-      font-weight: 600;
-      color: var(--accent);
-      margin-bottom: 8px;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
     .radio-group {
       display: flex;
       flex-direction: column;
-      gap: 8px;
-      font-size: 0.88rem;
+      gap: 5px;
+      font-size: 0.8rem;
     }
 
     .radio-label {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
       cursor: pointer;
       color: var(--text);
     }
 
     .radio-label input[type="radio"] {
       accent-color: var(--accent);
-      width: 16px;
-      height: 16px;
+      width: 14px;
+      height: 14px;
       cursor: pointer;
+    }
+
+    .input-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
     }
 
     .delta-badge {
@@ -152,8 +213,7 @@
       background: rgba(56, 189, 248, 0.12);
       border: 1.5px solid var(--accent);
       border-radius: 8px;
-      padding: 10px 14px;
-      margin-bottom: 12px;
+      padding: 8px 12px;
       transition: all 0.3s;
     }
 
@@ -163,7 +223,7 @@
     }
 
     .delta-badge .title {
-      font-size: 0.85rem;
+      font-size: 0.78rem;
       color: var(--accent);
       font-weight: 600;
     }
@@ -173,46 +233,109 @@
     }
 
     .delta-badge .value {
-      font-size: 1.35rem;
+      font-size: 1.25rem;
       font-weight: 800;
       color: #ffffff;
     }
 
-    .angle-control-card {
-      background: #151f30;
+    .res-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 5px;
+      font-size: 0.82rem;
+    }
+
+    .res-row span:first-child {
+      color: var(--text-dim);
+    }
+
+    .highlight-box {
+      background: #064e3b;
+      border: 1px solid #059669;
+      color: #ecfdf5;
+      padding: 9px 11px;
+      border-radius: 6px;
+      margin-top: 6px;
+      font-size: 0.82rem;
+      line-height: 1.45;
+    }
+
+    .warning-box {
+      background: #451a03;
+      border: 1px solid var(--warning);
+      color: #fef3c7;
+      padding: 8px;
+      border-radius: 6px;
+      margin-top: 6px;
+      font-size: 0.8rem;
+    }
+
+    /* Холст ротора по центру */
+    canvas {
+      width: 100%;
+      max-width: 480px;
+      max-height: 480px;
+      aspect-ratio: 1 / 1;
+      background: #0b1120;
       border: 1px solid var(--border);
       border-radius: 8px;
-      padding: 12px;
-      margin-top: 10px;
+      display: block;
+      cursor: pointer;
     }
 
-    .angle-top-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
+    .hint {
+      font-size: 0.72rem;
+      color: var(--text-dim);
+      text-align: center;
+      margin-top: 5px;
+    }
+
+    .legend {
+      display: flex;
       gap: 10px;
-      align-items: flex-end;
-      margin-bottom: 10px;
+      margin-top: 6px;
+      font-size: 0.72rem;
+      color: var(--text-dim);
+      justify-content: center;
+      flex-wrap: wrap;
     }
 
-    .angle-top-row .input-wrapper {
-      width: 100%;
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 4px;
     }
 
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+
+    .dot.heavy { background: var(--heavy-spot); }
+    .dot.weight { background: var(--weight-spot); }
+    .dot.divider { background: var(--divider-color); border-radius: 2px; height: 3px; width: 10px; }
+    .dot.target { background: #38bdf8; }
+    .dot.heat-red { background: rgba(239, 68, 68, 0.4); border: 1px solid #ef4444; }
+    .dot.heat-green { background: rgba(16, 185, 129, 0.4); border: 1px solid #10b981; }
+
+    /* Правая колонка управления углом */
     .step-buttons-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 8px;
+      gap: 6px;
+      margin-top: 8px;
     }
 
     .step-group {
       background: #0f172a;
       border: 1px solid var(--border);
       border-radius: 6px;
-      padding: 8px 6px;
+      padding: 6px 4px;
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 6px;
+      gap: 4px;
       cursor: ns-resize;
       user-select: none;
       transition: all 0.2s;
@@ -224,24 +347,20 @@
     }
 
     .step-group-title {
-      font-size: 0.72rem;
+      font-size: 0.68rem;
       font-weight: 700;
       color: var(--accent);
       text-transform: uppercase;
-      letter-spacing: 0.5px;
-      display: flex;
-      align-items: center;
-      gap: 4px;
     }
 
     .step-scroll-hint {
-      font-size: 0.65rem;
+      font-size: 0.6rem;
       color: var(--text-dim);
     }
 
     .step-btn-pair {
       display: flex;
-      gap: 4px;
+      gap: 3px;
       width: 100%;
     }
 
@@ -250,9 +369,9 @@
       background: #1e293b;
       border: 1px solid var(--border);
       color: var(--text);
-      padding: 5px 0;
+      padding: 4px 0;
       border-radius: 4px;
-      font-size: 0.78rem;
+      font-size: 0.72rem;
       font-weight: 600;
       cursor: pointer;
       transition: all 0.15s;
@@ -264,178 +383,52 @@
       border-color: var(--accent);
     }
 
-    .btn-step:active {
-      transform: scale(0.95);
+    .specs-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
     }
 
-    .card {
-      background: #151f30;
+    .calibration-row {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 6px;
+      margin-bottom: 6px;
+    }
+
+    .btn-calib {
+      background: #1e293b;
       border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 14px;
-      margin-top: 14px;
-    }
-
-    .card-header-flex {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 8px;
-      border-bottom: 1px solid var(--border);
-      padding-bottom: 6px;
-    }
-
-    .card h3 {
-      font-size: 0.95rem;
       color: var(--text);
-      margin: 0;
-    }
-
-    .btn-small {
-      background: transparent;
-      border: 1px solid var(--accent);
-      color: var(--accent);
-      padding: 3px 8px;
+      padding: 5px 10px;
       border-radius: 4px;
       font-size: 0.75rem;
+      font-weight: 600;
       cursor: pointer;
       transition: all 0.15s;
     }
 
-    .btn-small:hover {
-      background: rgba(56, 189, 248, 0.15);
-    }
-
-    .res-row {
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 6px;
-      font-size: 0.88rem;
-    }
-
-    .res-row span:first-child {
-      color: var(--text-dim);
-    }
-
-    .highlight-box {
-      background: #064e3b;
-      border: 1px solid #059669;
-      color: #ecfdf5;
-      padding: 12px;
-      border-radius: 6px;
-      margin-top: 10px;
-      font-size: 0.88rem;
-      line-height: 1.5;
-    }
-
-    .warning-box {
-      background: #451a03;
-      border: 1px solid var(--warning);
-      color: #fef3c7;
-      padding: 10px;
-      border-radius: 6px;
-      margin-top: 10px;
-      font-size: 0.85rem;
-    }
-
-    canvas {
-      width: 100%;
-      aspect-ratio: 1 / 1;
-      background: #0b1120;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      display: block;
-      cursor: pointer;
-    }
-
-    .hint {
-      font-size: 0.76rem;
-      color: var(--text-dim);
-      text-align: center;
-      margin-top: 6px;
-    }
-
-    .legend {
-      display: flex;
-      gap: 12px;
-      margin-top: 10px;
-      font-size: 0.78rem;
-      color: var(--text-dim);
-      justify-content: center;
-      flex-wrap: wrap;
-    }
-
-    .legend-item {
-      display: flex;
-      align-items: center;
-      gap: 5px;
-    }
-
-    .dot {
-      width: 9px;
-      height: 9px;
-      border-radius: 50%;
-    }
-
-    .dot.heavy { background: var(--heavy-spot); }
-    .dot.weight { background: var(--weight-spot); }
-    .dot.divider { background: var(--divider-color); border-radius: 2px; height: 3px; width: 12px; }
-    .dot.target { background: #38bdf8; }
-    .dot.heat-red { background: rgba(239, 68, 68, 0.4); border: 1px solid #ef4444; }
-    .dot.heat-green { background: rgba(16, 185, 129, 0.4); border: 1px solid #10b981; }
-
-    .specs-card {
-      background: #151f30;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 14px;
-      margin-top: 14px;
-    }
-
-    .specs-subtitle {
-      color: var(--text-dim);
-      font-size: 0.8rem;
-      margin-bottom: 12px;
-      line-height: 1.4;
-      border-bottom: 1px solid var(--border);
-      padding-bottom: 8px;
-    }
-
-    .specs-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-    }
-
-    .brand-mark {
-      position: absolute;
-      bottom: 12px;
-      right: 20px;
-      font-size: 1.25rem;
-      font-weight: 900;
-      letter-spacing: 4px;
-      color: #64748b;
-      text-transform: uppercase;
-      user-select: none;
-      transition: all 0.25s ease;
-      text-shadow: 0 0 10px rgba(56, 189, 248, 0.15);
-    }
-
-    .brand-mark:hover {
-      color: var(--accent);
-      text-shadow: 0 0 16px rgba(56, 189, 248, 0.5);
-      transform: scale(1.05);
+    .btn-calib:hover {
+      background: var(--accent);
+      color: #0f172a;
+      border-color: var(--accent);
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>Rotor Static Balancing Calculator</h1>
+    <div class="header-bar">
+      <h1>Rotor Static Balancing Calculator</h1>
+      <div class="brand-mark-header">SNEZH</div>
+    </div>
 
-    <div class="layout">
-      <div>
-        <div class="mode-selector">
-          <div class="mode-title">Input Calculation Mode</div>
+    <div class="dashboard-layout">
+      <!-- КОЛОНКА 1: ВХОДНЫЕ ДАННЫЕ ВЕСОВ И СВОДКА РАСЧЕТА -->
+      <div class="col-left">
+        <div class="card">
+          <div class="card-header-flex">
+            <h3>Input Calculation Mode</h3>
+          </div>
           <div class="radio-group">
             <label class="radio-label">
               <input type="radio" name="calcMode" id="modeMinMax" value="minmax" checked>
@@ -448,73 +441,29 @@
           </div>
         </div>
 
-        <div class="input-grid" id="minMaxContainer">
-          <div class="input-group">
-            <label>Wmax — Max scale weight (g):</label>
-            <input type="number" id="wMax" value="154.5" step="0.1">
+        <div class="card">
+          <div class="input-grid" id="minMaxContainer">
+            <div>
+              <label>Wmax (g):</label>
+              <input type="number" id="wMax" value="154.5" step="0.1">
+            </div>
+            <div>
+              <label>Wmin (g):</label>
+              <input type="number" id="wMin" value="145.5" step="0.1">
+            </div>
           </div>
-          <div class="input-group">
-            <label>Wmin — Min scale weight (g):</label>
-            <input type="number" id="wMin" value="145.5" step="0.1">
+          <div id="deltaContainer" style="margin-top: 6px;">
+            <label>Direct ΔW value (g):</label>
+            <input type="number" id="directDelta" value="9.00" step="0.01" disabled>
           </div>
-        </div>
-
-        <div class="input-group" id="deltaContainer">
-          <label>Direct ΔW value (g):</label>
-          <input type="number" id="directDelta" value="9.00" step="0.01" disabled>
         </div>
 
         <div class="delta-badge" id="deltaBadge">
           <div>
-            <div class="title" id="deltaBadgeTitle">EFFECTIVE SCALE DELTA (ΔW)</div>
-            <div style="font-size: 0.75rem; color: var(--text-dim);" id="deltaSubText">Wmax − Wmin amplitude</div>
+            <div class="title" id="deltaBadgeTitle">SCALE DELTA (ΔW)</div>
+            <div style="font-size: 0.7rem; color: var(--text-dim);" id="deltaSubText">Wmax − Wmin amplitude</div>
           </div>
           <div class="value" id="topDeltaDisplay">9.00 g</div>
-        </div>
-
-        <div class="angle-control-card">
-          <div class="angle-top-row">
-            <div class="input-wrapper">
-              <label>Heavy spot, θ_heavy (° CW) — <i>Scroll: 10°</i></label>
-              <input type="number" id="angleHeavy" value="270.0" step="10">
-            </div>
-            <div class="input-wrapper">
-              <label>Light spot (180° opp., CW):</label>
-              <input type="text" id="lightAngleDisplay" value="90.00°" disabled readonly>
-            </div>
-          </div>
-          
-          <div class="step-buttons-grid">
-            <!-- Зона 1: Coarse (1°) -->
-            <div class="step-group" id="scrollCoarse" title="Scroll wheel here for ±1°">
-              <div class="step-group-title">Coarse (1°)</div>
-              <div class="step-scroll-hint">Scroll or click</div>
-              <div class="step-btn-pair">
-                <button class="btn-step" type="button" onclick="adjustAngle(-1)">-1°</button>
-                <button class="btn-step" type="button" onclick="adjustAngle(1)">+1°</button>
-              </div>
-            </div>
-
-            <!-- Зона 2: Fine (0.1°) -->
-            <div class="step-group" id="scrollFine" title="Scroll wheel here for ±0.1°">
-              <div class="step-group-title">Fine (0.1°)</div>
-              <div class="step-scroll-hint">Scroll or click</div>
-              <div class="step-btn-pair">
-                <button class="btn-step" type="button" onclick="adjustAngle(-0.1)">-0.1°</button>
-                <button class="btn-step" type="button" onclick="adjustAngle(0.1)">+0.1°</button>
-              </div>
-            </div>
-
-            <!-- Зона 3: Ultra (0.01°) -->
-            <div class="step-group" id="scrollUltra" title="Scroll wheel here for ±0.01°">
-              <div class="step-group-title">Ultra (0.01°)</div>
-              <div class="step-scroll-hint">Scroll or click</div>
-              <div class="step-btn-pair">
-                <button class="btn-step" type="button" onclick="adjustAngle(-0.01)">-0.01°</button>
-                <button class="btn-step" type="button" onclick="adjustAngle(0.01)">+0.01°</button>
-              </div>
-            </div>
-          </div>
         </div>
 
         <div class="card">
@@ -524,11 +473,11 @@
           </div>
           <div class="res-row">
             <span>Scale amplitude difference (ΔW):</span>
-            <b id="resDeltaW" style="color: var(--accent); font-size: 1.05rem;">9.00 g</b>
+            <b id="resDeltaW" style="color: var(--accent); font-size: 0.95rem;">9.00 g</b>
           </div>
           <div class="res-row">
-            <span>Target angle (180° opposite, CW):</span>
-            <b id="resTargetAngle">90.00°</b>
+            <span>Target angle (180° opposite):</span>
+            <b id="resTargetAngle">180.00°</b>
           </div>
           <div class="res-row">
             <span>Theoretical single mass:</span>
@@ -539,8 +488,9 @@
         </div>
       </div>
 
-      <div>
-        <canvas id="diskCanvas" width="520" height="520"></canvas>
+      <!-- КОЛОНКА 2: ИНТЕРАКТИВНЫЙ ДИСК РОТОРА (ЦЕНТР) -->
+      <div class="col-center">
+        <canvas id="diskCanvas" width="480" height="480"></canvas>
         <div class="hint">Click any weight spot circle (1–36) on drawing to toggle placement</div>
         <div class="legend">
           <div class="legend-item"><div class="dot heat-red"></div> Heavy side (excess)</div>
@@ -549,55 +499,141 @@
           <div class="legend-item"><div class="dot divider"></div> Divider</div>
           <div class="legend-item"><div class="dot weight"></div> Counterweight</div>
         </div>
+      </div>
 
-        <div class="specs-card">
-          <div class="specs-subtitle">
-            36 weight spots (numbered 1 to 36, CW) separated by 12 dividers (red)
+      <!-- КОЛОНКА 3: УПРАВЛЕНИЕ УГЛАМИ И КАЛИБРОВКА ЭНКОДЕРА -->
+      <div class="col-right">
+        <div class="card">
+          <div class="card-header-flex">
+            <h3>Angle Alignment</h3>
+          </div>
+          <div class="input-grid">
+            <div>
+              <label id="lblHeavyAngle">Heavy spot (12h=0°):</label>
+              <input type="number" id="angleHeavy" value="0.0" step="10">
+            </div>
+            <div>
+              <label id="lblLightAngle">Light spot (180° opp.):</label>
+              <input type="text" id="lightAngleDisplay" value="180.00°" disabled readonly>
+            </div>
+          </div>
+
+          <div class="step-buttons-grid">
+            <div class="step-group" id="scrollCoarse" title="Scroll wheel here for ±1°">
+              <div class="step-group-title">Coarse (1°)</div>
+              <div class="step-scroll-hint">Scroll / click</div>
+              <div class="step-btn-pair">
+                <button class="btn-step" type="button" onclick="adjustAngle(-1)">-1°</button>
+                <button class="btn-step" type="button" onclick="adjustAngle(1)">+1°</button>
+              </div>
+            </div>
+
+            <div class="step-group" id="scrollFine" title="Scroll wheel here for ±0.1°">
+              <div class="step-group-title">Fine (0.1°)</div>
+              <div class="step-scroll-hint">Scroll / click</div>
+              <div class="step-btn-pair">
+                <button class="btn-step" type="button" onclick="adjustAngle(-0.1)">-0.1°</button>
+                <button class="btn-step" type="button" onclick="adjustAngle(0.1)">+0.1°</button>
+              </div>
+            </div>
+
+            <div class="step-group" id="scrollUltra" title="Scroll wheel here for ±0.01°">
+              <div class="step-group-title">Ultra (0.01°)</div>
+              <div class="step-scroll-hint">Scroll / click</div>
+              <div class="step-btn-pair">
+                <button class="btn-step" type="button" onclick="adjustAngle(-0.01)">-0.01°</button>
+                <button class="btn-step" type="button" onclick="adjustAngle(0.01)">+0.01°</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header-flex">
+            <h3>Hardware Encoder Calibration</h3>
+            <span id="calibStatus" style="font-size: 0.72rem; color: #10b981;">● Saved</span>
+          </div>
+          <div class="calibration-row">
+            <div>
+              <label>Zero Offset, θ_offset (°):</label>
+              <input type="number" id="inputZeroOffset" value="0.00" step="0.1" disabled title="Scroll wheel here to adjust">
+            </div>
+            <div>
+              <label>Direction:</label>
+              <select id="selectDirection" disabled>
+                <option value="CW" selected>CW (Clockwise)</option>
+                <option value="CCW">CCW (Counter-CW)</option>
+              </select>
+            </div>
+          </div>
+          <div style="display: flex; gap: 6px; justify-content: flex-end;">
+            <button type="button" class="btn-calib" id="btnToggleCalib">⚙️ Unlock</button>
+            <button type="button" class="btn-calib" id="btnResetCalib" style="display: none;">Reset</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header-flex">
+            <h3>Stand Geometry</h3>
           </div>
           <div class="specs-grid">
-            <div class="input-group">
-              <label>Total grid divisions (N):</label>
+            <div>
+              <label>Lever arm L (mm):</label>
+              <input type="text" value="100 (Fixed)" disabled>
+            </div>
+            <div>
+              <label>Weight radius R (mm):</label>
+              <input type="text" value="79 (Fixed)" disabled>
+            </div>
+            <div>
+              <label>Total grid divisions:</label>
               <input type="text" value="48 (Fixed)" disabled>
             </div>
-            <div class="input-group">
-              <label>Weight spots (Numbered 1-36):</label>
+            <div>
+              <label>Weight spots:</label>
               <input type="text" value="36 spots" disabled>
-            </div>
-            <div class="input-group">
-              <label>Lever arm length, L (mm):</label>
-              <input type="text" id="leverL" value="100 (Fixed)" disabled>
-            </div>
-            <div class="input-group">
-              <label>Weight radius, R (mm):</label>
-              <input type="text" id="radiusR" value="79 (Fixed)" disabled>
             </div>
           </div>
         </div>
       </div>
     </div>
-
-    <div class="brand-mark">SNEZH</div>
   </div>
 
   <script>
     const CONST_L = 100;
     const CONST_R = 79;
-
     const TOTAL_DIVISIONS = 48;
-    const STEP_ANGLE = 360 / TOTAL_DIVISIONS;
+    const STEP_ANGLE = 360 / TOTAL_DIVISIONS; // 7.5°
 
-    const weightSpots = [];
-    let currentSpotNum = 1;
+    let currentZeroOffset = parseFloat(localStorage.getItem('snezh_rotor_zero_offset')) || 0.0;
+    let currentDirection = localStorage.getItem('snezh_rotor_direction') || 'CW';
 
-    for (let i = 0; i < TOTAL_DIVISIONS; i++) {
-      if (i % 4 !== 0) {
-        weightSpots.push({
-          spotNum: currentSpotNum++,
-          gridPos: i,
-          angleCW: (i * STEP_ANGLE) % 360
-        });
+    let weightSpots = [];
+    function rebuildWeightSpots() {
+      weightSpots = [];
+      let currentSpotNum = 1;
+      const isCCW = (currentDirection === 'CCW');
+
+      for (let i = 0; i < TOTAL_DIVISIONS; i++) {
+        if (i % 4 !== 0) {
+          const spotDiskAngleCW = (i * STEP_ANGLE) + currentZeroOffset;
+          let encoderAngle = isCCW ? (360 - spotDiskAngleCW) : spotDiskAngleCW;
+          encoderAngle = ((encoderAngle % 360) + 360) % 360;
+
+          weightSpots.push({
+            spotNum: currentSpotNum++,
+            gridPos: i,
+            diskAngleCW: spotDiskAngleCW,
+            angle: encoderAngle
+          });
+        }
       }
+
+      const dirText = isCCW ? 'CCW' : 'CW';
+      document.getElementById('lblHeavyAngle').innerText = `Heavy spot (${dirText}, 12h=0°):`;
+      document.getElementById('lblLightAngle').innerText = `Light spot (180° opp., ${dirText}):`;
     }
+    rebuildWeightSpots();
 
     let isManualSelection = false;
     const manuallySelectedSpots = new Set();
@@ -612,6 +648,87 @@
     const directDeltaInput = document.getElementById('directDelta');
     const angleHeavyInput = document.getElementById('angleHeavy');
     const lightAngleDisplay = document.getElementById('lightAngleDisplay');
+
+    const inputZeroOffset = document.getElementById('inputZeroOffset');
+    const selectDirection = document.getElementById('selectDirection');
+    const btnToggleCalib = document.getElementById('btnToggleCalib');
+    const btnResetCalib = document.getElementById('btnResetCalib');
+    const calibStatus = document.getElementById('calibStatus');
+
+    inputZeroOffset.value = currentZeroOffset.toFixed(2);
+    selectDirection.value = currentDirection;
+
+    let isCalibUnlocked = false;
+
+    btnToggleCalib.addEventListener('click', () => {
+      isCalibUnlocked = !isCalibUnlocked;
+      if (isCalibUnlocked) {
+        inputZeroOffset.disabled = false;
+        selectDirection.disabled = false;
+        inputZeroOffset.focus();
+        btnToggleCalib.innerText = '💾 Save';
+        btnResetCalib.style.display = 'inline-block';
+        calibStatus.innerText = '● Editing';
+        calibStatus.style.color = '#f59e0b';
+      } else {
+        inputZeroOffset.disabled = true;
+        selectDirection.disabled = true;
+        btnToggleCalib.innerText = '⚙️ Unlock';
+        btnResetCalib.style.display = 'none';
+        calibStatus.innerText = '● Saved';
+        calibStatus.style.color = '#10b981';
+        localStorage.setItem('snezh_rotor_zero_offset', currentZeroOffset.toString());
+        localStorage.setItem('snezh_rotor_direction', currentDirection);
+      }
+    });
+
+    selectDirection.addEventListener('change', () => {
+      currentDirection = selectDirection.value;
+      localStorage.setItem('snezh_rotor_direction', currentDirection);
+      rebuildWeightSpots();
+      calculate();
+    });
+
+    btnResetCalib.addEventListener('click', () => {
+      currentZeroOffset = 0.0;
+      currentDirection = 'CW';
+      inputZeroOffset.value = '0.00';
+      selectDirection.value = 'CW';
+      localStorage.setItem('snezh_rotor_zero_offset', '0');
+      localStorage.setItem('snezh_rotor_direction', 'CW');
+      rebuildWeightSpots();
+      calculate();
+    });
+
+    inputZeroOffset.addEventListener('input', () => {
+      currentZeroOffset = parseFloat(inputZeroOffset.value) || 0.0;
+      localStorage.setItem('snezh_rotor_zero_offset', currentZeroOffset.toString());
+      rebuildWeightSpots();
+      calculate();
+    });
+
+    inputZeroOffset.addEventListener('wheel', (e) => {
+      if (!isCalibUnlocked) return;
+      e.preventDefault();
+      const step = e.shiftKey ? 1.0 : 0.1;
+      currentZeroOffset += (e.deltaY < 0 ? step : -step);
+      currentZeroOffset = Math.round(currentZeroOffset * 100) / 100;
+      inputZeroOffset.value = currentZeroOffset.toFixed(2);
+      localStorage.setItem('snezh_rotor_zero_offset', currentZeroOffset.toString());
+      rebuildWeightSpots();
+      calculate();
+    });
+
+    function encoderAngleToCanvasRad(deg) {
+      if (currentDirection === 'CCW') {
+        return ((-deg - 90) * Math.PI) / 180;
+      }
+      return ((deg - 90) * Math.PI) / 180;
+    }
+
+    function diskAngleCWToCanvasRad(deg) {
+      return ((deg - 90) * Math.PI) / 180;
+    }
 
     function toRad(deg) { return (deg * Math.PI) / 180; }
 
@@ -645,31 +762,26 @@
       calculate();
     }
 
-    // 1. Колесико над основным полем ввода — шаг 10°
     angleHeavyInput.addEventListener('wheel', (e) => {
       e.preventDefault();
       adjustAngle(e.deltaY < 0 ? 10 : -10);
     });
 
-    // 2. Колесико над блоком COARSE — шаг 1°
     document.getElementById('scrollCoarse').addEventListener('wheel', (e) => {
       e.preventDefault();
       adjustAngle(e.deltaY < 0 ? 1 : -1);
     });
 
-    // 3. Колесико над блоком FINE — шаг 0.1°
     document.getElementById('scrollFine').addEventListener('wheel', (e) => {
       e.preventDefault();
       adjustAngle(e.deltaY < 0 ? 0.1 : -0.1);
     });
 
-    // 4. Колесико над блоком ULTRA — шаг 0.01°
     document.getElementById('scrollUltra').addEventListener('wheel', (e) => {
       e.preventDefault();
       adjustAngle(e.deltaY < 0 ? 0.01 : -0.01);
     });
 
-    // Клавиатурные стрелки в основном поле ввода — шаг 10°
     angleHeavyInput.addEventListener('keydown', (e) => {
       if (e.key === 'ArrowUp') {
         e.preventDefault();
@@ -680,17 +792,17 @@
       }
     });
 
-    function findBestTwoSpots(targetAngleCW) {
+    function findBestTwoSpots(targetAngle) {
       let bestPair = null;
       let minTotalMass = Infinity;
-      const targetRad = toRad(targetAngleCW);
+      const targetRad = toRad(targetAngle);
 
       for (let i = 0; i < weightSpots.length; i++) {
         for (let j = i + 1; j < weightSpots.length; j++) {
           const s1 = weightSpots[i];
           const s2 = weightSpots[j];
-          const phi1 = toRad(s1.angleCW);
-          const phi2 = toRad(s2.angleCW);
+          const phi1 = toRad(s1.angle);
+          const phi2 = toRad(s2.angle);
           const det = Math.sin(phi2 - phi1);
           
           if (Math.abs(det) < 1e-4) continue;
@@ -710,17 +822,17 @@
       return bestPair || [weightSpots[0], weightSpots[1]];
     }
 
-    function solveMassDistribution(targetAngleCW, targetMass, selectedSpotsList) {
+    function solveMassDistribution(targetAngle, targetMass, selectedSpotsList) {
       const n = selectedSpotsList.length;
       if (n === 0) return { error: 'No weight spots selected!' };
 
-      const phi0 = toRad(targetAngleCW);
+      const phi0 = toRad(targetAngle);
       const Tx = targetMass * Math.cos(phi0);
       const Ty = targetMass * Math.sin(phi0);
 
       if (n === 1) {
         const spot = selectedSpotsList[0];
-        const phi = toRad(spot.angleCW);
+        const phi = toRad(spot.angle);
         const cosDiff = Math.cos(phi - phi0);
         if (cosDiff <= 0.05) {
           return { error: `Spot #${spot.spotNum} is on the wrong side and cannot balance this rotor.` };
@@ -734,8 +846,8 @@
       if (n === 2) {
         const s1 = selectedSpotsList[0];
         const s2 = selectedSpotsList[1];
-        const phi1 = toRad(s1.angleCW);
-        const phi2 = toRad(s2.angleCW);
+        const phi1 = toRad(s1.angle);
+        const phi2 = toRad(s2.angle);
         const det = Math.sin(phi2 - phi1);
 
         if (Math.abs(det) < 1e-4) {
@@ -753,8 +865,8 @@
         return { masses: res, totalAdded: res[s1.spotNum] + res[s2.spotNum] };
       }
 
-      const cosA = selectedSpotsList.map(s => Math.cos(toRad(s.angleCW)));
-      const sinA = selectedSpotsList.map(s => Math.sin(toRad(s.angleCW)));
+      const cosA = selectedSpotsList.map(s => Math.cos(toRad(s.angle)));
+      const sinA = selectedSpotsList.map(s => Math.sin(toRad(s.angle)));
       let weights = new Array(n).fill(targetMass / n);
       let step = 0.05;
 
@@ -816,23 +928,23 @@
         badgeTitle.innerText = 'ROTOR BALANCED (ΔW ≈ 0)';
       } else {
         deltaBadge.classList.remove('balanced');
-        badgeTitle.innerText = 'EFFECTIVE SCALE DELTA (ΔW)';
+        badgeTitle.innerText = 'SCALE DELTA (ΔW)';
       }
 
       document.getElementById('topDeltaDisplay').innerText = `${deltaW.toFixed(2)} g`;
       document.getElementById('resDeltaW').innerText = `${deltaW.toFixed(2)} g`;
 
-      const targetAngleCW = (angleHeavy + 180) % 360;
+      const targetAngle = (angleHeavy + 180) % 360;
       const targetMass = Math.max(0, (deltaW * L) / (2 * R));
 
-      lightAngleDisplay.value = `${targetAngleCW.toFixed(2)}°`;
-      document.getElementById('resTargetAngle').innerText = `${targetAngleCW.toFixed(2)}°`;
+      lightAngleDisplay.value = `${targetAngle.toFixed(2)}°`;
+      document.getElementById('resTargetAngle').innerText = `${targetAngle.toFixed(2)}°`;
       document.getElementById('resTargetMass').innerText = `${targetMass.toFixed(2)} g`;
 
       let chosenSpots = [];
 
       if (!isManualSelection) {
-        const [spotA, spotB] = findBestTwoSpots(targetAngleCW);
+        const [spotA, spotB] = findBestTwoSpots(targetAngle);
         chosenSpots = [spotA, spotB];
         manuallySelectedSpots.clear();
         manuallySelectedSpots.add(spotA.spotNum);
@@ -846,19 +958,19 @@
 
       if (chosenSpots.length === 0) {
         warnBox.style.display = 'block';
-        warnBox.innerText = 'No weight spots selected! Click spots on drawing or click "Auto 2 spots".';
+        warnBox.innerText = 'No spots selected! Click spots on drawing or click "Auto 2 spots".';
         sumBox.innerHTML = 'No spots selected';
-        draw(angleHeavy, targetAngleCW, {}, deltaW);
+        draw(angleHeavy, targetAngle, {}, deltaW);
         return;
       }
 
-      const result = solveMassDistribution(targetAngleCW, targetMass, chosenSpots);
+      const result = solveMassDistribution(targetAngle, targetMass, chosenSpots);
 
       if (result.error) {
         warnBox.style.display = 'block';
         warnBox.innerText = '⚠️ ' + result.error;
         sumBox.innerHTML = 'Balancing impossible with current spot choice';
-        draw(angleHeavy, targetAngleCW, {}, deltaW);
+        draw(angleHeavy, targetAngle, {}, deltaW);
       } else {
         warnBox.style.display = 'none';
         let html = '<b>Recommended Counterweights:</b><br>';
@@ -868,7 +980,7 @@
           const m = result.masses[spot.spotNum] || 0;
           if (m > 0.01) {
             countNonZero++;
-            html += `• Weight Spot <b>#${spot.spotNum}</b> (${spot.angleCW.toFixed(1)}°): <b>${m.toFixed(2)} g</b><br>`;
+            html += `• Weight Spot <b>#${spot.spotNum}</b> (${spot.angle.toFixed(1)}°): <b>${m.toFixed(2)} g</b><br>`;
           }
         });
 
@@ -881,15 +993,16 @@
         </span>`;
 
         sumBox.innerHTML = html;
-        draw(angleHeavy, targetAngleCW, result.masses, deltaW);
+        draw(angleHeavy, targetAngle, result.masses, deltaW);
       }
     }
 
-    function draw(heavyAngleCW, targetAngleCW, activeSpotsMap, deltaW) {
+    function draw(heavyAngle, targetAngle, activeSpotsMap, deltaW) {
       const cx = canvas.width / 2;
       const cy = canvas.height / 2;
-      const rDisk = 225;
-      const rHoles = 180;
+      const rDisk = 195;
+      const rHoles = 155;
+      const isCCW = (currentDirection === 'CCW');
 
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -904,7 +1017,7 @@
         ctx.fillStyle = balGrad;
         ctx.fill();
       } else {
-        const hRad = toRad(heavyAngleCW);
+        const hRad = encoderAngleToCanvasRad(heavyAngle);
         const cosH = Math.cos(hRad);
         const sinH = Math.sin(hRad);
 
@@ -943,28 +1056,44 @@
       ctx.beginPath();
       ctx.strokeStyle = '#334155';
       ctx.lineWidth = 1;
-      ctx.moveTo(cx - 15, cy); ctx.lineTo(cx + 15, cy);
-      ctx.moveTo(cx, cy - 15); ctx.lineTo(cx + 15, cy);
+      ctx.moveTo(cx - 14, cy); ctx.lineTo(cx + 14, cy);
+      ctx.moveTo(cx, cy - 14); ctx.lineTo(cx, cy + 14);
       ctx.stroke();
 
+      ctx.fillStyle = '#64748b';
+      ctx.font = 'bold 10px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('0°', cx, cy - rDisk - 12);
+      ctx.fillText('180°', cx, cy + rDisk + 12);
+
+      if (isCCW) {
+        ctx.fillText('270°', cx + rDisk + 18, cy);
+        ctx.fillText('90°', cx - rDisk - 18, cy);
+      } else {
+        ctx.fillText('90°', cx + rDisk + 18, cy);
+        ctx.fillText('270°', cx - rDisk - 18, cy);
+      }
+
       for (let i = 0; i < TOTAL_DIVISIONS; i += 4) {
-        const theta = toRad(i * STEP_ANGLE);
+        const dividerAngle = (i * STEP_ANGLE) + currentZeroOffset;
+        const theta = diskAngleCWToCanvasRad(dividerAngle);
         const cosT = Math.cos(theta);
         const sinT = Math.sin(theta);
 
-        const innerR = rHoles - 16;
+        const innerR = rHoles - 14;
         const outerR = rDisk - 2;
 
         ctx.beginPath();
         ctx.moveTo(cx + innerR * cosT, cy + innerR * sinT);
         ctx.lineTo(cx + outerR * cosT, cy + outerR * sinT);
         ctx.strokeStyle = '#ef4444';
-        ctx.lineWidth = 2.8;
+        ctx.lineWidth = 2.5;
         ctx.stroke();
       }
 
       weightSpots.forEach(spot => {
-        const theta = toRad(spot.angleCW);
+        const theta = diskAngleCWToCanvasRad(spot.diskAngleCW);
         const cosT = Math.cos(theta);
         const sinT = Math.sin(theta);
 
@@ -975,7 +1104,7 @@
         const hasWeight = (mass > 0.01);
 
         ctx.beginPath();
-        const rDot = hasWeight ? 8.5 : (isManuallyPicked ? 6.5 : 4.5);
+        const rDot = hasWeight ? 8 : (isManuallyPicked ? 6 : 4);
         ctx.arc(hx, hy, rDot, 0, 2 * Math.PI);
 
         if (hasWeight) {
@@ -992,35 +1121,35 @@
           ctx.fillStyle = '#0f172a';
           ctx.fill();
           ctx.strokeStyle = '#64748b';
-          ctx.lineWidth = 1.3;
+          ctx.lineWidth = 1.2;
         }
         ctx.stroke();
 
-        const textDist = rHoles - 22;
+        const textDist = rHoles - 20;
         const tx = cx + textDist * cosT;
         const ty = cy + textDist * sinT;
         ctx.fillStyle = hasWeight ? '#34d399' : '#94a3b8';
-        ctx.font = hasWeight ? 'bold 11px sans-serif' : '8.5px sans-serif';
+        ctx.font = hasWeight ? 'bold 10px sans-serif' : '8px sans-serif';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillText(spot.spotNum.toString(), tx, ty);
       });
 
       if (deltaW > 0.02) {
-        const hRad = toRad(heavyAngleCW);
-        const heavyX = cx + (rDisk - 20) * Math.cos(hRad);
-        const heavyY = cy + (rDisk - 20) * Math.sin(hRad);
+        const hRad = encoderAngleToCanvasRad(heavyAngle);
+        const heavyX = cx + (rDisk - 18) * Math.cos(hRad);
+        const heavyY = cy + (rDisk - 18) * Math.sin(hRad);
         ctx.beginPath();
         ctx.moveTo(cx, cy); ctx.lineTo(heavyX, heavyY);
         ctx.strokeStyle = '#ef4444';
         ctx.lineWidth = 3;
         ctx.stroke();
         ctx.beginPath();
-        ctx.arc(heavyX, heavyY, 6, 0, 2 * Math.PI);
+        ctx.arc(heavyX, heavyY, 5, 0, 2 * Math.PI);
         ctx.fillStyle = '#ef4444';
         ctx.fill();
 
-        const tRad = toRad(targetAngleCW);
+        const tRad = encoderAngleToCanvasRad(targetAngle);
         const targetX = cx + rHoles * Math.cos(tRad);
         const targetY = cy + rHoles * Math.sin(tRad);
         ctx.beginPath();
@@ -1036,10 +1165,10 @@
         ctx.fill();
       } else {
         ctx.fillStyle = '#10b981';
-        ctx.font = 'bold 14px sans-serif';
+        ctx.font = 'bold 13px sans-serif';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillText('BALANCED', cx, cy - 26);
+        ctx.fillText('BALANCED', cx, cy - 24);
       }
     }
 
@@ -1052,13 +1181,13 @@
 
       const cx = canvas.width / 2;
       const cy = canvas.height / 2;
-      const rHoles = 180;
+      const rHoles = 155;
 
       let closestSpot = null;
       let minDst = 9999;
 
       weightSpots.forEach(spot => {
-        const theta = toRad(spot.angleCW);
+        const theta = diskAngleCWToCanvasRad(spot.diskAngleCW);
         const hx = cx + rHoles * Math.cos(theta);
         const hy = cy + rHoles * Math.sin(theta);
         const d = Math.hypot(clickX - hx, clickY - hy);
@@ -1068,7 +1197,7 @@
         }
       });
 
-      if (closestSpot && minDst < 20) {
+      if (closestSpot && minDst < 18) {
         isManualSelection = true;
         if (manuallySelectedSpots.has(closestSpot.spotNum)) {
           manuallySelectedSpots.delete(closestSpot.spotNum);
