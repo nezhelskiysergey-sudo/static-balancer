@@ -14,6 +14,7 @@
       --border: #334155;
       --heavy-spot: #ef4444;
       --weight-spot: #10b981;
+      --fixed-spot: #0ea5e9;
       --divider-color: #ef4444;
       --warning: #f59e0b;
     }
@@ -78,7 +79,7 @@
 
     .dashboard-layout {
       display: grid;
-      grid-template-columns: 310px 1fr 340px;
+      grid-template-columns: 340px 1fr 340px;
       gap: 16px;
       align-items: start;
     }
@@ -249,14 +250,16 @@
     }
 
     .highlight-box {
-      background: #064e3b;
-      border: 1px solid #059669;
+      background: #0f1f1d;
+      border: 1px solid #10b981;
       color: #ecfdf5;
-      padding: 9px 11px;
+      padding: 8px 10px;
       border-radius: 6px;
       margin-top: 6px;
-      font-size: 0.82rem;
-      line-height: 1.45;
+      font-size: 0.8rem;
+      line-height: 1.4;
+      max-height: 220px;
+      overflow-y: auto;
     }
 
     .warning-box {
@@ -269,6 +272,41 @@
       font-size: 0.8rem;
     }
 
+    .spots-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 4px;
+      font-size: 0.78rem;
+    }
+
+    .spots-table th {
+      color: var(--text-dim);
+      font-weight: 600;
+      text-align: left;
+      padding: 3px 4px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .spots-table td {
+      padding: 4px;
+      border-bottom: 1px solid rgba(51, 65, 85, 0.5);
+      vertical-align: middle;
+    }
+
+    .spots-table input[type="number"] {
+      width: 65px;
+      padding: 3px 5px;
+      font-size: 0.8rem;
+      text-align: right;
+    }
+
+    .spots-table input[type="checkbox"] {
+      accent-color: var(--accent);
+      cursor: pointer;
+      width: 14px;
+      height: 14px;
+    }
+
     canvas {
       width: 100%;
       max-width: 480px;
@@ -278,7 +316,11 @@
       border: 1px solid var(--border);
       border-radius: 8px;
       display: block;
-      cursor: pointer;
+      cursor: grab;
+    }
+
+    canvas:active {
+      cursor: grabbing;
     }
 
     .hint {
@@ -312,6 +354,7 @@
 
     .dot.heavy { background: var(--heavy-spot); }
     .dot.weight { background: var(--weight-spot); }
+    .dot.fixed { background: var(--fixed-spot); }
     .dot.divider { background: var(--divider-color); border-radius: 2px; height: 3px; width: 10px; }
     .dot.target { background: #38bdf8; }
     .dot.heat-red { background: rgba(239, 68, 68, 0.4); border: 1px solid #ef4444; }
@@ -420,7 +463,7 @@
     </div>
 
     <div class="dashboard-layout">
-      <!-- КОЛОНКА 1: ВХОДНЫЕ ДАННЫЕ ВЕСОВ И СВОДКА РАСЧЕТА -->
+      <!-- COLUMN 1: INPUTS & SUMMARY -->
       <div class="col-left">
         <div class="card">
           <div class="card-header-flex">
@@ -466,14 +509,13 @@
         <div class="card">
           <div class="card-header-flex">
             <h3>Summary & Placement</h3>
-            <button class="btn-small" type="button" id="btnAuto2">Auto optimal</button>
+            <div style="display: flex; gap: 4px;">
+              <button class="btn-small" type="button" id="btnAuto2">Auto optimal</button>
+              <button class="btn-small" type="button" id="btnUnlockAll" title="Unfix all spots">Unfix all</button>
+            </div>
           </div>
           <div class="res-row">
-            <span>Scale amplitude difference (ΔW):</span>
-            <b id="resDeltaW" style="color: var(--accent); font-size: 0.95rem;">9.00 g</b>
-          </div>
-          <div class="res-row">
-            <span>Target angle (180° opposite):</span>
+            <span>Target angle:</span>
             <b id="resTargetAngle">180.00°</b>
           </div>
           <div class="res-row">
@@ -493,33 +535,34 @@
         </div>
       </div>
 
-      <!-- КОЛОНКА 2: ИНТЕРАКТИВНЫЙ ДИСК РОТОРА (ЦЕНТР) -->
+      <!-- COLUMN 2: ROTOR DRAWING -->
       <div class="col-center">
         <canvas id="diskCanvas" width="480" height="480"></canvas>
-        <div class="hint">Click any weight spot circle (1–36) on drawing to toggle placement</div>
+        <div class="hint">Scroll wheel over disk: rotate (2.0° step) | Click spot: toggle placement</div>
         <div class="legend">
-          <div class="legend-item"><div class="dot heat-red"></div> Heavy side (excess)</div>
-          <div class="legend-item"><div class="dot heat-green"></div> Light side (add weights)</div>
-          <div class="legend-item"><div class="dot target"></div> Target vector</div>
-          <div class="legend-item"><div class="dot divider"></div> Divider</div>
+          <div class="legend-item"><div class="dot heavy"></div> Heavy spot</div>
           <div class="legend-item"><div class="dot weight"></div> Counterweight</div>
+          <div class="legend-item"><div class="dot fixed"></div> 🔒 Fixed mass</div>
+          <div class="legend-item"><div class="dot target"></div> Stand pointer (0°)</div>
+          <div class="legend-item"><div class="dot divider"></div> Divider</div>
         </div>
       </div>
 
-      <!-- КОЛОНКА 3: УПРАВЛЕНИЕ УГЛАМИ, ОГРАНИЧЕНИЯ И КАЛИБРОВКА -->
+      <!-- COLUMN 3: ANGLE ALIGNMENT & CALIBRATION -->
       <div class="col-right">
         <div class="card">
           <div class="card-header-flex">
             <h3>Angle Alignment</h3>
+            <span id="diskRotationStatus" style="font-size: 0.72rem; color: var(--accent);">Rotation: 0.0°</span>
           </div>
           <div class="input-grid">
             <div>
-              <label id="lblHeavyAngle">Heavy spot (12h=0°):</label>
-              <input type="number" id="angleHeavy" value="0.0" step="10">
+              <label id="lblLightAngle">Light spot:</label>
+              <input type="number" id="angleLight" value="180.0" step="10">
             </div>
             <div>
-              <label id="lblLightAngle">Light spot (180° opp.):</label>
-              <input type="text" id="lightAngleDisplay" value="180.00°" disabled readonly>
+              <label id="lblHeavyAngle">Heavy spot:</label>
+              <input type="text" id="heavyAngleDisplay" value="0.00°" disabled readonly>
             </div>
           </div>
 
@@ -555,12 +598,18 @@
 
         <div class="card">
           <div class="card-header-flex">
-            <h3>Spot Mass Limit</h3>
+            <h3>Standard Weights & Limits</h3>
             <span style="font-size: 0.72rem; color: #10b981;">Min 1 hole gap active</span>
           </div>
-          <div>
-            <label>Max Mass per Spot (g) — <i>Scroll: 0.5g</i>:</label>
-            <input type="number" id="inputMaxSpotMass" value="8.00" step="0.5" min="0.5">
+          <div class="input-grid">
+            <div>
+              <label>Default Fixed Mass (g):</label>
+              <input type="number" id="inputDefaultFix" value="8.00" step="0.5" min="0.1">
+            </div>
+            <div>
+              <label>Max Mass Limit (g):</label>
+              <input type="number" id="inputMaxSpotMass" value="8.00" step="0.5" min="0.5">
+            </div>
           </div>
         </div>
 
@@ -619,11 +668,15 @@
     const CONST_L = 100;
     const CONST_R = 79;
     const TOTAL_DIVISIONS = 48;
-    const STEP_ANGLE = 360 / TOTAL_DIVISIONS; // 7.5°
+    const STEP_ANGLE = 360 / TOTAL_DIVISIONS;
 
     let currentZeroOffset = parseFloat(localStorage.getItem('snezh_rotor_zero_offset')) || 0.0;
     let currentDirection = localStorage.getItem('snezh_rotor_direction') || 'CW';
     let maxSpotMassLimit = parseFloat(localStorage.getItem('snezh_rotor_max_spot_mass')) || 8.0;
+    let defaultFixMass = parseFloat(localStorage.getItem('snezh_rotor_default_fix')) || 8.0;
+
+    let diskRotationDeg = 0.0;
+    const fixedSpotsMap = {};
 
     let weightSpots = [];
     function rebuildWeightSpots() {
@@ -645,10 +698,6 @@
           });
         }
       }
-
-      const dirText = isCCW ? 'CCW' : 'CW';
-      document.getElementById('lblHeavyAngle').innerText = `Heavy spot (${dirText}, 12h=0°):`;
-      document.getElementById('lblLightAngle').innerText = `Light spot (180° opp., ${dirText}):`;
     }
     rebuildWeightSpots();
 
@@ -663,8 +712,8 @@
     const wMaxInput = document.getElementById('wMax');
     const wMinInput = document.getElementById('wMin');
     const directDeltaInput = document.getElementById('directDelta');
-    const angleHeavyInput = document.getElementById('angleHeavy');
-    const lightAngleDisplay = document.getElementById('lightAngleDisplay');
+    const angleLightInput = document.getElementById('angleLight');
+    const heavyAngleDisplay = document.getElementById('heavyAngleDisplay');
 
     const inputZeroOffset = document.getElementById('inputZeroOffset');
     const selectDirection = document.getElementById('selectDirection');
@@ -672,10 +721,13 @@
     const btnResetCalib = document.getElementById('btnResetCalib');
     const calibStatus = document.getElementById('calibStatus');
     const inputMaxSpotMass = document.getElementById('inputMaxSpotMass');
+    const inputDefaultFix = document.getElementById('inputDefaultFix');
+    const diskRotationStatus = document.getElementById('diskRotationStatus');
 
     inputZeroOffset.value = currentZeroOffset.toFixed(2);
     selectDirection.value = currentDirection;
     inputMaxSpotMass.value = maxSpotMassLimit.toFixed(2);
+    inputDefaultFix.value = defaultFixMass.toFixed(2);
 
     inputMaxSpotMass.addEventListener('input', () => {
       maxSpotMassLimit = Math.max(0.1, parseFloat(inputMaxSpotMass.value) || 8.0);
@@ -683,14 +735,9 @@
       calculate();
     });
 
-    inputMaxSpotMass.addEventListener('wheel', (e) => {
-      e.preventDefault();
-      const step = 0.5;
-      maxSpotMassLimit += (e.deltaY < 0 ? step : -step);
-      maxSpotMassLimit = Math.max(0.5, Math.round(maxSpotMassLimit * 10) / 10);
-      inputMaxSpotMass.value = maxSpotMassLimit.toFixed(2);
-      localStorage.setItem('snezh_rotor_max_spot_mass', maxSpotMassLimit.toString());
-      calculate();
+    inputDefaultFix.addEventListener('input', () => {
+      defaultFixMass = Math.max(0.1, parseFloat(inputDefaultFix.value) || 8.0);
+      localStorage.setItem('snezh_rotor_default_fix', defaultFixMass.toString());
     });
 
     let isCalibUnlocked = false;
@@ -754,16 +801,15 @@
       calculate();
     });
 
-    function encoderAngleToCanvasRad(deg) {
-      if (currentDirection === 'CCW') {
-        return ((-deg - 90) * Math.PI) / 180;
-      }
-      return ((deg - 90) * Math.PI) / 180;
-    }
-
-    function diskAngleCWToCanvasRad(deg) {
-      return ((deg - 90) * Math.PI) / 180;
-    }
+    // Вращение диска колесиком мыши с шагом 2.0°
+    canvas.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      const step = e.shiftKey ? 10.0 : 2.0;
+      diskRotationDeg += (e.deltaY < 0 ? step : -step);
+      diskRotationDeg = ((diskRotationDeg % 360) + 360) % 360;
+      diskRotationStatus.innerText = `Rotation: ${diskRotationDeg.toFixed(1)}°`;
+      calculate();
+    });
 
     function toRad(deg) { return (deg * Math.PI) / 180; }
 
@@ -786,18 +832,16 @@
     modeDeltaRadio.addEventListener('change', handleModeChange);
 
     function adjustAngle(delta) {
-      let current = parseFloat(angleHeavyInput.value) || 0;
+      let current = parseFloat(angleLightInput.value) || 0;
       current += delta;
-
       const decimals = delta.toString().includes('.') ? delta.toString().split('.')[1].length : 0;
       const factor = Math.pow(10, Math.max(decimals, 1));
-
       current = Math.round((((current % 360) + 360) % 360) * factor) / factor;
-      angleHeavyInput.value = current.toFixed(Math.max(decimals, 1));
+      angleLightInput.value = current.toFixed(Math.max(decimals, 1));
       calculate();
     }
 
-    angleHeavyInput.addEventListener('wheel', (e) => {
+    angleLightInput.addEventListener('wheel', (e) => {
       e.preventDefault();
       adjustAngle(e.deltaY < 0 ? 10 : -10);
     });
@@ -817,7 +861,7 @@
       adjustAngle(e.deltaY < 0 ? 0.01 : -0.01);
     });
 
-    angleHeavyInput.addEventListener('keydown', (e) => {
+    angleLightInput.addEventListener('keydown', (e) => {
       if (e.key === 'ArrowUp') {
         e.preventDefault();
         adjustAngle(10);
@@ -843,147 +887,130 @@
       return false;
     }
 
-    function solveMassDistribution(targetAngle, targetMass, selectedSpotsList) {
+    function solveWithFixedMasses(targetAngle, targetMass, selectedSpotsList) {
       const n = selectedSpotsList.length;
       if (n === 0) return { error: 'No weight spots selected!' };
 
-      if (targetMass <= 0.001) {
-        const resZero = {};
-        selectedSpotsList.forEach(s => resZero[s.spotNum] = 0);
-        return { masses: resZero, totalAdded: 0, maxSpot: 0, resDeltaW: 0, resU: 0 };
-      }
-
       const phi0 = toRad(targetAngle);
-      const Tx = targetMass * Math.cos(phi0);
-      const Ty = targetMass * Math.sin(phi0);
+      let Tx = targetMass * Math.cos(phi0);
+      let Ty = targetMass * Math.sin(phi0);
 
-      if (n === 1) {
-        const spot = selectedSpotsList[0];
-        const phi = toRad(spot.angle);
-        const cosDiff = Math.cos(phi - phi0);
-        if (cosDiff <= 0.05) {
-          return { error: `Spot #${spot.spotNum} is on opposite side and cannot balance rotor.` };
+      const finalMasses = {};
+      const freeSpots = [];
+
+      selectedSpotsList.forEach(s => {
+        if (fixedSpotsMap[s.spotNum] !== undefined) {
+          const mFix = fixedSpotsMap[s.spotNum];
+          finalMasses[s.spotNum] = mFix;
+          const phi = toRad(s.angle);
+          Tx -= mFix * Math.cos(phi);
+          Ty -= mFix * Math.sin(phi);
+        } else {
+          freeSpots.push(s);
         }
-        const m = Math.round((targetMass / cosDiff) * 100) / 100;
-        const res = {};
-        res[spot.spotNum] = m;
-        const errX = m * Math.cos(phi) - Tx;
-        const errY = m * Math.sin(phi) - Ty;
-        const resMass = Math.hypot(errX, errY);
-        return { 
-          masses: res, 
-          totalAdded: m, 
-          maxSpot: m,
+      });
+
+      if (freeSpots.length === 0) {
+        const resMass = Math.hypot(Tx, Ty);
+        let total = 0, maxSingle = 0;
+        for (let k in finalMasses) {
+          total += finalMasses[k];
+          if (finalMasses[k] > maxSingle) maxSingle = finalMasses[k];
+        }
+        return {
+          masses: finalMasses,
+          totalAdded: total,
+          maxSpot: maxSingle,
           resDeltaW: (resMass * 2 * CONST_R) / CONST_L,
           resU: resMass * CONST_R
         };
       }
 
-      if (n === 2) {
-        const s1 = selectedSpotsList[0];
-        const s2 = selectedSpotsList[1];
+      const remTargetMass = Math.hypot(Tx, Ty);
+      let remTargetAngle = (Math.atan2(Ty, Tx) * 180) / Math.PI;
+      remTargetAngle = ((remTargetAngle % 360) + 360) % 360;
+
+      if (remTargetMass < 0.005) {
+        freeSpots.forEach(s => finalMasses[s.spotNum] = 0);
+      } else if (freeSpots.length === 1) {
+        const spot = freeSpots[0];
+        const phi = toRad(spot.angle);
+        const cosDiff = Math.cos(phi - toRad(remTargetAngle));
+        if (cosDiff <= 0.05) {
+          return { error: `Free spot #${spot.spotNum} cannot balance the remaining vector.` };
+        }
+        const m = Math.round((remTargetMass / cosDiff) * 100) / 100;
+        finalMasses[spot.spotNum] = m;
+      } else if (freeSpots.length === 2) {
+        const s1 = freeSpots[0];
+        const s2 = freeSpots[1];
         const phi1 = toRad(s1.angle);
         const phi2 = toRad(s2.angle);
         const det = Math.sin(phi2 - phi1);
 
         if (Math.abs(det) < 1e-4) {
-          return { error: 'Selected two spots are collinear.' };
+          return { error: 'Selected free spots are collinear.' };
         }
         const m1 = (Tx * Math.sin(phi2) - Ty * Math.cos(phi2)) / det;
         const m2 = (Ty * Math.cos(phi1) - Tx * Math.sin(phi1)) / det;
 
         if (m1 < -0.01 || m2 < -0.01) {
-          return { error: 'Target vector is outside selected sector.' };
+          return { error: 'Remaining vector is outside sector of free spots. Adjust fixed weights or add spots.' };
         }
-        const res = {};
-        res[s1.spotNum] = Math.round(Math.max(0, m1) * 100) / 100;
-        res[s2.spotNum] = Math.round(Math.max(0, m2) * 100) / 100;
-        const total = res[s1.spotNum] + res[s2.spotNum];
-        
-        const sumX = res[s1.spotNum] * Math.cos(phi1) + res[s2.spotNum] * Math.cos(phi2);
-        const sumY = res[s1.spotNum] * Math.sin(phi1) + res[s2.spotNum] * Math.sin(phi2);
-        const resMass = Math.hypot(sumX - Tx, sumY - Ty);
+        finalMasses[s1.spotNum] = Math.round(Math.max(0, m1) * 100) / 100;
+        finalMasses[s2.spotNum] = Math.round(Math.max(0, m2) * 100) / 100;
+      } else {
+        const cosA = freeSpots.map(s => Math.cos(toRad(s.angle)));
+        const sinA = freeSpots.map(s => Math.sin(toRad(s.angle)));
+        let weights = new Float64Array(freeSpots.length).fill(remTargetMass / freeSpots.length);
+        let y = new Float64Array(weights);
+        let t = 1.0;
 
-        return { 
-          masses: res, 
-          totalAdded: total, 
-          maxSpot: Math.max(res[s1.spotNum], res[s2.spotNum]),
-          resDeltaW: (resMass * 2 * CONST_R) / CONST_L,
-          resU: resMass * CONST_R
-        };
-      }
+        for (let iter = 0; iter < 500; iter++) {
+          let curX = 0, curY = 0;
+          for (let i = 0; i < freeSpots.length; i++) {
+            curX += y[i] * cosA[i];
+            curY += y[i] * sinA[i];
+          }
+          const rx = curX - Tx;
+          const ry = curY - Ty;
+          if (Math.hypot(rx, ry) < 0.002 && iter > 20) break;
 
-      const cosA = selectedSpotsList.map(s => Math.cos(toRad(s.angle)));
-      const sinA = selectedSpotsList.map(s => Math.sin(toRad(s.angle)));
-
-      const perpX = -Math.sin(phi0);
-      const perpY = Math.cos(phi0);
-      let hasPositive = false, hasNegative = false;
-
-      for (let i = 0; i < n; i++) {
-        const forward = cosA[i] * Math.cos(phi0) + sinA[i] * Math.sin(phi0);
-        const side = cosA[i] * perpX + sinA[i] * perpY;
-        if (forward > -0.1) {
-          if (side > 1e-3) hasPositive = true;
-          if (side < -1e-3) hasNegative = true;
-          if (Math.abs(side) <= 1e-3) { hasPositive = true; hasNegative = true; }
-        }
-      }
-
-      if (!hasPositive || !hasNegative) {
-        return { error: 'Selected spots do not enclose target angle. Pick spots on both sides.' };
-      }
-
-      let weights = new Float64Array(n).fill(targetMass / n);
-      let y = new Float64Array(weights);
-      let t = 1.0;
-
-      for (let iter = 0; iter < 500; iter++) {
-        let curX = 0, curY = 0;
-        for (let i = 0; i < n; i++) {
-          curX += y[i] * cosA[i];
-          curY += y[i] * sinA[i];
+          let weightsNext = new Float64Array(freeSpots.length);
+          for (let i = 0; i < freeSpots.length; i++) {
+            const grad = 2 * (rx * cosA[i] + ry * sinA[i]) + 0.005 * y[i];
+            weightsNext[i] = Math.max(0, y[i] - (1.0 / (freeSpots.length * 2.5)) * grad);
+          }
+          const tNext = (1.0 + Math.sqrt(1.0 + 4.0 * t * t)) / 2.0;
+          const beta = (t - 1.0) / tNext;
+          for (let i = 0; i < freeSpots.length; i++) {
+            y[i] = weightsNext[i] + beta * (weightsNext[i] - weights[i]);
+            weights[i] = weightsNext[i];
+          }
+          t = tNext;
         }
 
-        const rx = curX - Tx;
-        const ry = curY - Ty;
-
-        if (Math.hypot(rx, ry) < 0.002 && iter > 20) break;
-
-        let weightsNext = new Float64Array(n);
-        for (let i = 0; i < n; i++) {
-          const grad = 2 * (rx * cosA[i] + ry * sinA[i]) + 0.005 * y[i];
-          weightsNext[i] = Math.max(0, y[i] - (1.0 / (n * 2.5)) * grad);
+        for (let i = 0; i < freeSpots.length; i++) {
+          finalMasses[freeSpots[i].spotNum] = weights[i] < 0.01 ? 0 : Math.round(weights[i] * 100) / 100;
         }
-
-        const tNext = (1.0 + Math.sqrt(1.0 + 4.0 * t * t)) / 2.0;
-        const beta = (t - 1.0) / tNext;
-        for (let i = 0; i < n; i++) {
-          y[i] = weightsNext[i] + beta * (weightsNext[i] - weights[i]);
-          weights[i] = weightsNext[i];
-        }
-        t = tNext;
       }
 
-      let sumX = 0, sumY = 0, totalM = 0, maxSingle = 0;
-      const res = {};
-      for (let i = 0; i < n; i++) {
-        const val = weights[i] < 0.01 ? 0 : Math.round(weights[i] * 100) / 100;
-        res[selectedSpotsList[i].spotNum] = val;
-        sumX += val * cosA[i];
-        sumY += val * sinA[i];
-        totalM += val;
-        if (val > maxSingle) maxSingle = val;
-      }
+      let sumTotX = 0, sumTotY = 0, totalAdded = 0, maxSingle = 0;
+      selectedSpotsList.forEach(s => {
+        const m = finalMasses[s.spotNum] || 0;
+        totalAdded += m;
+        if (m > maxSingle) maxSingle = m;
+        sumTotX += m * Math.cos(toRad(s.angle));
+        sumTotY += m * Math.sin(toRad(s.angle));
+      });
 
-      const resMass = Math.hypot(sumX - Tx, sumY - Ty);
-      if (resMass > 0.35) {
-        return { error: 'Geometric limitation: selected spots cannot achieve balance.' };
-      }
+      const origTx = targetMass * Math.cos(phi0);
+      const origTy = targetMass * Math.sin(phi0);
+      const resMass = Math.hypot(sumTotX - origTx, sumTotY - origTy);
 
-      return { 
-        masses: res, 
-        totalAdded: totalM, 
+      return {
+        masses: finalMasses,
+        totalAdded: totalAdded,
         maxSpot: maxSingle,
         resDeltaW: (resMass * 2 * CONST_R) / CONST_L,
         resU: resMass * CONST_R
@@ -995,21 +1022,34 @@
         return [weightSpots[0], weightSpots[2]];
       }
 
-      const sectorSpots = weightSpots
-        .filter(s => angularDiff(s.angle, targetAngle) <= 65)
+      let pool = weightSpots
+        .filter(s => angularDiff(s.angle, targetAngle) <= 52)
         .sort((a, b) => angularDiff(a.angle, targetAngle) - angularDiff(b.angle, targetAngle));
 
-      const pool = sectorSpots.length >= 8 ? sectorSpots.slice(0, 10) : weightSpots;
+      if (pool.length < 5) {
+        pool = weightSpots
+          .filter(s => angularDiff(s.angle, targetAngle) <= 68)
+          .sort((a, b) => angularDiff(a.angle, targetAngle) - angularDiff(b.angle, targetAngle));
+      }
 
       let bestCombination = null;
       let minCost = Infinity;
 
       function searchCombinations(startIdx, currentSpots, targetCount) {
         if (currentSpots.length === targetCount) {
-          const sol = solveMassDistribution(targetAngle, targetMass, currentSpots);
+          const sol = solveWithFixedMasses(targetAngle, targetMass, currentSpots);
           if (!sol.error) {
             const isWithinLimit = (sol.maxSpot <= limit + 0.05);
-            const cost = (isWithinLimit ? 0 : 5000) + sol.totalAdded + (sol.maxSpot * 0.5);
+
+            let maxSpan = 0;
+            for (let i = 0; i < currentSpots.length; i++) {
+              for (let j = i + 1; j < currentSpots.length; j++) {
+                const span = angularDiff(currentSpots[i].angle, currentSpots[j].angle);
+                if (span > maxSpan) maxSpan = span;
+              }
+            }
+
+            const cost = (isWithinLimit ? 0 : 8000) + sol.totalAdded + (maxSpan * 1.5);
             if (cost < minCost) {
               minCost = cost;
               bestCombination = [...currentSpots];
@@ -1024,10 +1064,7 @@
           for (let c of currentSpots) {
             let diff = Math.abs(c.gridPos - candidate.gridPos);
             if (diff > TOTAL_DIVISIONS / 2) diff = TOTAL_DIVISIONS - diff;
-            if (diff < 2) {
-              collision = true;
-              break;
-            }
+            if (diff < 2) { collision = true; break; }
           }
           if (collision) continue;
 
@@ -1037,28 +1074,64 @@
         }
       }
 
-      searchCombinations(0, [], 2);
-      if (bestCombination && minCost < 4000) {
-        return bestCombination;
-      }
-
-      for (let k = 3; k <= 5; k++) {
+      for (let k = 2; k <= 4; k++) {
         minCost = Infinity;
-        bestCombination = null;
         searchCombinations(0, [], k);
-        if (bestCombination && minCost < 4000) {
-          return bestCombination;
-        }
+        if (bestCombination && minCost < 6000) return bestCombination;
       }
 
-      return bestCombination || [weightSpots[0], weightSpots[2]];
+      return bestCombination || [pool[0], pool[2] || pool[1]];
     }
+
+    window.toggleFixSpot = function(spotNum, calculatedMass) {
+      isManualSelection = true;
+      if (fixedSpotsMap[spotNum] !== undefined) {
+        delete fixedSpotsMap[spotNum];
+      } else {
+        fixedSpotsMap[spotNum] = defaultFixMass;
+      }
+      calculate();
+    };
+
+    window.updateFixedMass = function(spotNum, val) {
+      fixedSpotsMap[spotNum] = Math.max(0, parseFloat(val) || defaultFixMass);
+      calculate();
+    };
+
+    window.fixAllExceptTwo = function() {
+      isManualSelection = true;
+      const spots = Array.from(manuallySelectedSpots);
+      if (spots.length <= 2) {
+        alert('Select at least 3 or 4 spots to fix standard weights and leave 2 for fine tuning!');
+        return;
+      }
+      for (let i = 0; i < spots.length - 2; i++) {
+        fixedSpotsMap[spots[i]] = defaultFixMass;
+      }
+      calculate();
+    };
+
+    document.getElementById('btnUnlockAll').addEventListener('click', () => {
+      for (let k in fixedSpotsMap) delete fixedSpotsMap[k];
+      calculate();
+    });
+
+    document.getElementById('btnAuto2').addEventListener('click', () => {
+      isManualSelection = false;
+      for (let k in fixedSpotsMap) delete fixedSpotsMap[k];
+      manuallySelectedSpots.clear();
+      calculate();
+    });
 
     function calculate() {
       const L = CONST_L;
       const R = CONST_R;
-      let rawAngle = parseFloat(angleHeavyInput.value) || 0;
-      let angleHeavy = ((rawAngle % 360) + 360) % 360;
+      
+      let rawAngleLight = parseFloat(angleLightInput.value) || 0;
+      let targetAngle = ((rawAngleLight % 360) + 360) % 360;
+
+      let angleHeavy = (targetAngle + 180) % 360;
+      heavyAngleDisplay.value = `${angleHeavy.toFixed(2)}°`;
 
       let deltaW = 0;
       if (modeMinMaxRadio.checked) {
@@ -1082,22 +1155,22 @@
       }
 
       document.getElementById('topDeltaDisplay').innerText = `${deltaW.toFixed(2)} g`;
-      document.getElementById('resDeltaW').innerText = `${deltaW.toFixed(2)} g`;
 
-      const targetAngle = (angleHeavy + 180) % 360;
       const targetMass = Math.max(0, (deltaW * L) / (2 * R));
 
-      lightAngleDisplay.value = `${targetAngle.toFixed(2)}°`;
       document.getElementById('resTargetAngle').innerText = `${targetAngle.toFixed(2)}°`;
       document.getElementById('resTargetMass').innerText = `${targetMass.toFixed(2)} g`;
 
       let chosenSpots = [];
 
-      if (!isManualSelection) {
+      if (!isManualSelection && Object.keys(fixedSpotsMap).length === 0) {
         chosenSpots = findBestSpotsAuto(targetAngle, targetMass, maxSpotMassLimit);
         manuallySelectedSpots.clear();
         chosenSpots.forEach(s => manuallySelectedSpots.add(s.spotNum));
       } else {
+        for (let spotNum in fixedSpotsMap) {
+          manuallySelectedSpots.add(parseInt(spotNum));
+        }
         chosenSpots = weightSpots.filter(s => manuallySelectedSpots.has(s.spotNum));
       }
 
@@ -1117,12 +1190,11 @@
       }
 
       const hasCollision = hasAdjacentCollision(chosenSpots);
-      const result = solveMassDistribution(targetAngle, targetMass, chosenSpots);
+      const result = solveWithFixedMasses(targetAngle, targetMass, chosenSpots);
 
       if (result.error) {
         warnBox.style.display = 'block';
         warnBox.innerText = '⚠️ ' + result.error;
-        sumBox.innerHTML = 'Balancing impossible with current spot choice';
         resDeltaDisplay.innerText = `${deltaW.toFixed(2)} g`;
         resUDisplay.innerText = `${(targetMass * R).toFixed(1)} g·mm`;
         draw(angleHeavy, targetAngle, {}, deltaW);
@@ -1139,39 +1211,49 @@
           warnBox.style.display = 'none';
         }
 
-        // Обновление плашки остаточного дисбаланса
         const resDeltaVal = result.resDeltaW || 0;
         const resUVal = result.resU || 0;
-        resDeltaDisplay.innerText = `${resDeltaVal.toFixed(2)} g ${resDeltaVal <= 0.05 ? '(PASS)' : ''}`;
+
+        resDeltaDisplay.innerText = `${resDeltaVal.toFixed(2)} g ${resDeltaVal <= 0.05 ? '(PASS)' : '(OUT OF SPEC)'}`;
         resDeltaDisplay.style.color = resDeltaVal <= 0.05 ? '#34d399' : '#f59e0b';
         resUDisplay.innerText = `${resUVal.toFixed(1)} g·mm`;
+        resUDisplay.style.color = resUVal <= (0.05 * R) ? '#34d399' : '#94a3b8';
 
-        let html = `<b>Recommended Counterweights (${chosenSpots.length} spots, gap ≥ 1 hole):</b><br>`;
-        let countNonZero = 0;
+        let tableHtml = '<table class="spots-table"><thead><tr><th>Spot</th><th>Angle</th><th>Mass (g)</th><th title="Lock standard weight">Fix 🔒</th></tr></thead><tbody>';
 
         chosenSpots.forEach(spot => {
           const m = result.masses[spot.spotNum] || 0;
-          if (m > 0.01) {
-            countNonZero++;
-            const color = (m > maxSpotMassLimit + 0.05 || hasCollision) ? '#f87171' : '#ffffff';
-            html += `• Weight Spot <b>#${spot.spotNum}</b> (${spot.angle.toFixed(1)}°): <b style="color:${color}">${m.toFixed(2)} g</b><br>`;
-          }
+          const isFixed = (fixedSpotsMap[spot.spotNum] !== undefined);
+          const color = isFixed ? 'var(--fixed-spot)' : ((m > maxSpotMassLimit + 0.05 || hasCollision) ? '#f87171' : '#34d399');
+
+          tableHtml += '<tr>' +
+            '<td><b>#' + spot.spotNum + '</b></td>' +
+            '<td>' + spot.angle.toFixed(1) + '°</td>' +
+            '<td>' +
+              (isFixed 
+                ? '<input type="number" step="0.1" value="' + m.toFixed(2) + '" onchange="updateFixedMass(' + spot.spotNum + ', this.value)">'
+                : '<b style="color:' + color + '">' + m.toFixed(2) + '</b>'
+              ) +
+            '</td>' +
+            '<td>' +
+              '<input type="checkbox" ' + (isFixed ? 'checked' : '') + ' onchange="toggleFixSpot(' + spot.spotNum + ', ' + m.toFixed(2) + ')">' +
+            '</td>' +
+          '</tr>';
         });
 
-        if (countNonZero === 0) {
-          html += '<i>Rotor is perfectly balanced. No weights required.</i><br>';
-        }
+        tableHtml += '</tbody></table>';
+        tableHtml += '<div style="display:flex; justify-content:space-between; margin-top:6px; font-size:0.75rem; color:var(--text-dim);">' +
+          '<span>Total: <b>' + result.totalAdded.toFixed(2) + ' g</b></span>' +
+          '<a href="javascript:void(0)" onclick="fixAllExceptTwo()" style="color:var(--accent); text-decoration:none;">⚡ Fix all to ' + defaultFixMass + 'g except 2</a>' +
+        '</div>';
 
-        html += `<span style="font-size: 0.85em; opacity: 0.85; margin-top: 4px; display:inline-block;">
-          Total added mass: ${result.totalAdded.toFixed(2)} g
-        </span>`;
-
-        sumBox.innerHTML = html;
+        sumBox.innerHTML = tableHtml;
         draw(angleHeavy, targetAngle, result.masses, deltaW);
       }
     }
 
     function draw(heavyAngle, targetAngle, activeSpotsMap, deltaW) {
+      if (!canvas || !ctx) return;
       const cx = canvas.width / 2;
       const cy = canvas.height / 2;
       const rDisk = 195;
@@ -1180,65 +1262,15 @@
 
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      if (deltaW <= 0.02) {
-        const balGrad = ctx.createRadialGradient(cx, cy, 10, cx, cy, rDisk);
-        balGrad.addColorStop(0, 'rgba(16, 185, 129, 0.22)');
-        balGrad.addColorStop(0.85, 'rgba(16, 185, 129, 0.08)');
-        balGrad.addColorStop(1, 'rgba(16, 185, 129, 0)');
-        
-        ctx.beginPath();
-        ctx.arc(cx, cy, rDisk, 0, 2 * Math.PI);
-        ctx.fillStyle = balGrad;
-        ctx.fill();
-      } else {
-        const hRad = encoderAngleToCanvasRad(heavyAngle);
-        const cosH = Math.cos(hRad);
-        const sinH = Math.sin(hRad);
+      const rotAngle = isCCW ? -diskRotationDeg : diskRotationDeg;
+      const rotRad = toRad(rotAngle);
 
-        const xGreen = cx - rDisk * cosH;
-        const yGreen = cy - rDisk * sinH;
-        const xRed = cx + rDisk * cosH;
-        const yRed = cy + rDisk * sinH;
-
-        const heatGrad = ctx.createLinearGradient(xGreen, yGreen, xRed, yRed);
-        heatGrad.addColorStop(0, 'rgba(16, 185, 129, 0.28)');
-        heatGrad.addColorStop(0.45, 'rgba(16, 185, 129, 0.04)');
-        heatGrad.addColorStop(0.55, 'rgba(239, 68, 68, 0.04)');
-        heatGrad.addColorStop(1, 'rgba(239, 68, 68, 0.32)');
-
-        ctx.save();
-        ctx.beginPath();
-        ctx.arc(cx, cy, rDisk, 0, 2 * Math.PI);
-        ctx.fillStyle = heatGrad;
-        ctx.fill();
-        ctx.restore();
-      }
-
-      ctx.beginPath();
-      ctx.arc(cx, cy, rDisk, 0, 2 * Math.PI);
-      ctx.strokeStyle = (deltaW <= 0.02) ? '#10b981' : '#38bdf8';
-      ctx.lineWidth = 2.5;
-      ctx.stroke();
-
-      ctx.beginPath();
-      ctx.arc(cx, cy, rHoles, 0, 2 * Math.PI);
-      ctx.strokeStyle = '#1e293b';
-      ctx.setLineDash([3, 3]);
-      ctx.stroke();
-      ctx.setLineDash([]);
-
-      ctx.beginPath();
-      ctx.strokeStyle = '#334155';
-      ctx.lineWidth = 1;
-      ctx.moveTo(cx - 14, cy); ctx.lineTo(cx + 14, cy);
-      ctx.moveTo(cx, cy - 14); ctx.lineTo(cx + 14, cy);
-      ctx.stroke();
-
+      // 1. FIXED OUTER ENCODER DIAL
       ctx.fillStyle = '#64748b';
       ctx.font = 'bold 10px sans-serif';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.fillText('0°', cx, cy - rDisk - 12);
+      ctx.fillText('0° (Ref)', cx, cy - rDisk - 14);
       ctx.fillText('180°', cx, cy + rDisk + 12);
 
       if (isCCW) {
@@ -1249,32 +1281,96 @@
         ctx.fillText('270°', cx - rDisk - 18, cy);
       }
 
-      for (let i = 0; i < TOTAL_DIVISIONS; i += 4) {
-        const dividerAngle = (i * STEP_ANGLE) + currentZeroOffset;
-        const theta = diskAngleCWToCanvasRad(dividerAngle);
-        const cosT = Math.cos(theta);
-        const sinT = Math.sin(theta);
+      ctx.beginPath();
+      ctx.strokeStyle = '#334155';
+      ctx.lineWidth = 1;
+      ctx.moveTo(cx, cy - rDisk - 4); ctx.lineTo(cx, cy - rDisk + 4);
+      ctx.moveTo(cx, cy + rDisk - 4); ctx.lineTo(cx, cy + rDisk + 4);
+      ctx.moveTo(cx - rDisk - 4, cy); ctx.lineTo(cx - rDisk + 4, cy);
+      ctx.moveTo(cx + rDisk - 4, cy); ctx.lineTo(cx + rDisk + 4, cy);
+      ctx.stroke();
 
-        const innerR = rHoles - 14;
-        const outerR = rDisk - 2;
+      // ==========================================
+      // 2. ROTATING ROTOR BODY
+      // ==========================================
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.rotate(rotRad);
+
+      if (deltaW <= 0.02) {
+        const balGrad = ctx.createRadialGradient(0, 0, 10, 0, 0, rDisk);
+        balGrad.addColorStop(0, 'rgba(16, 185, 129, 0.22)');
+        balGrad.addColorStop(0.85, 'rgba(16, 185, 129, 0.08)');
+        balGrad.addColorStop(1, 'rgba(16, 185, 129, 0)');
+        ctx.beginPath();
+        ctx.arc(0, 0, rDisk, 0, 2 * Math.PI);
+        ctx.fillStyle = balGrad;
+        ctx.fill();
+      } else {
+        const hRadInternal = toRad((isCCW ? -heavyAngle : heavyAngle) - 90);
+        const cosH = Math.cos(hRadInternal);
+        const sinH = Math.sin(hRadInternal);
+
+        const xGreen = -rDisk * cosH;
+        const yGreen = -rDisk * sinH;
+        const xRed = rDisk * cosH;
+        const yRed = rDisk * sinH;
+
+        const heatGrad = ctx.createLinearGradient(xGreen, yGreen, xRed, yRed);
+        heatGrad.addColorStop(0, 'rgba(16, 185, 129, 0.28)');
+        heatGrad.addColorStop(0.45, 'rgba(16, 185, 129, 0.04)');
+        heatGrad.addColorStop(0.55, 'rgba(239, 68, 68, 0.04)');
+        heatGrad.addColorStop(1, 'rgba(239, 68, 68, 0.35)');
 
         ctx.beginPath();
-        ctx.moveTo(cx + innerR * cosT, cy + innerR * sinT);
-        ctx.lineTo(cx + outerR * cosT, cy + outerR * sinT);
+        ctx.arc(0, 0, rDisk, 0, 2 * Math.PI);
+        ctx.fillStyle = heatGrad;
+        ctx.fill();
+      }
+
+      ctx.beginPath();
+      ctx.arc(0, 0, rDisk, 0, 2 * Math.PI);
+      ctx.strokeStyle = (deltaW <= 0.02) ? '#10b981' : '#38bdf8';
+      ctx.lineWidth = 2.5;
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.arc(0, 0, rHoles, 0, 2 * Math.PI);
+      ctx.strokeStyle = '#1e293b';
+      ctx.setLineDash([3, 3]);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      ctx.beginPath();
+      ctx.strokeStyle = '#334155';
+      ctx.lineWidth = 1;
+      ctx.moveTo(-14, 0); ctx.lineTo(14, 0);
+      ctx.moveTo(0, -14); ctx.lineTo(0, 14);
+      ctx.stroke();
+
+      for (let i = 0; i < TOTAL_DIVISIONS; i += 4) {
+        const dividerAngle = (i * STEP_ANGLE) + currentZeroOffset;
+        const theta = toRad(dividerAngle - 90);
+        const cosT = Math.cos(theta);
+        const sinT = Math.sin(theta);
+        ctx.beginPath();
+        ctx.moveTo((rHoles - 14) * cosT, (rHoles - 14) * sinT);
+        ctx.lineTo((rDisk - 2) * cosT, (rDisk - 2) * sinT);
         ctx.strokeStyle = '#ef4444';
         ctx.lineWidth = 2.5;
         ctx.stroke();
       }
 
       weightSpots.forEach(spot => {
-        const theta = diskAngleCWToCanvasRad(spot.diskAngleCW);
+        const theta = toRad(spot.diskAngleCW - 90);
         const cosT = Math.cos(theta);
         const sinT = Math.sin(theta);
+        const hx = rHoles * cosT;
+        const hy = rHoles * sinT;
 
-        const hx = cx + rHoles * cosT;
-        const hy = cy + rHoles * sinT;
         const mass = activeSpotsMap ? (activeSpotsMap[spot.spotNum] || 0) : 0;
         const isManuallyPicked = manuallySelectedSpots.has(spot.spotNum);
+        const isFixed = (fixedSpotsMap[spot.spotNum] !== undefined);
         const hasWeight = (mass > 0.01);
         const isExceeded = (mass > maxSpotMassLimit + 0.05);
 
@@ -1282,7 +1378,12 @@
         const rDot = hasWeight ? 8 : (isManuallyPicked ? 6 : 4);
         ctx.arc(hx, hy, rDot, 0, 2 * Math.PI);
 
-        if (isExceeded) {
+        if (isFixed) {
+          ctx.fillStyle = '#0ea5e9';
+          ctx.fill();
+          ctx.strokeStyle = '#ffffff';
+          ctx.lineWidth = 2;
+        } else if (isExceeded) {
           ctx.fillStyle = '#ef4444';
           ctx.fill();
           ctx.strokeStyle = '#ffffff';
@@ -1306,21 +1407,26 @@
         ctx.stroke();
 
         const textDist = rHoles - 20;
-        const tx = cx + textDist * cosT;
-        const ty = cy + textDist * sinT;
-        ctx.fillStyle = isExceeded ? '#f87171' : (hasWeight ? '#34d399' : '#94a3b8');
+        const tx = textDist * cosT;
+        const ty = textDist * sinT;
+
+        ctx.save();
+        ctx.translate(tx, ty);
+        ctx.rotate(-rotRad);
+        ctx.fillStyle = isFixed ? '#38bdf8' : (isExceeded ? '#f87171' : (hasWeight ? '#34d399' : '#94a3b8'));
         ctx.font = hasWeight ? 'bold 10px sans-serif' : '8px sans-serif';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillText(spot.spotNum.toString(), tx, ty);
+        ctx.fillText((isFixed ? '🔒' : '') + spot.spotNum.toString(), 0, 0);
+        ctx.restore();
       });
 
       if (deltaW > 0.02) {
-        const hRad = encoderAngleToCanvasRad(heavyAngle);
-        const heavyX = cx + (rDisk - 18) * Math.cos(hRad);
-        const heavyY = cy + (rDisk - 18) * Math.sin(hRad);
+        const hRad = toRad((isCCW ? -heavyAngle : heavyAngle) - 90);
+        const heavyX = (rDisk - 18) * Math.cos(hRad);
+        const heavyY = (rDisk - 18) * Math.sin(hRad);
         ctx.beginPath();
-        ctx.moveTo(cx, cy); ctx.lineTo(heavyX, heavyY);
+        ctx.moveTo(0, 0); ctx.lineTo(heavyX, heavyY);
         ctx.strokeStyle = '#ef4444';
         ctx.lineWidth = 3;
         ctx.stroke();
@@ -1329,12 +1435,12 @@
         ctx.fillStyle = '#ef4444';
         ctx.fill();
 
-        const tRad = encoderAngleToCanvasRad(targetAngle);
-        const targetX = cx + rHoles * Math.cos(tRad);
-        const targetY = cy + rHoles * Math.sin(tRad);
+        const tRad = toRad((isCCW ? -targetAngle : targetAngle) - 90);
+        const targetX = rHoles * Math.cos(tRad);
+        const targetY = rHoles * Math.sin(tRad);
         ctx.beginPath();
         ctx.setLineDash([4, 4]);
-        ctx.moveTo(cx, cy); ctx.lineTo(targetX, targetY);
+        ctx.moveTo(0, 0); ctx.lineTo(targetX, targetY);
         ctx.strokeStyle = '#38bdf8';
         ctx.lineWidth = 2;
         ctx.stroke();
@@ -1343,7 +1449,23 @@
         ctx.arc(targetX, targetY, 4, 0, 2 * Math.PI);
         ctx.fillStyle = '#38bdf8';
         ctx.fill();
-      } else {
+      }
+
+      ctx.restore();
+
+      // 3. FIXED STAND POINTER AT 0° (12:00)
+      ctx.beginPath();
+      ctx.moveTo(cx - 8, cy - rDisk - 2);
+      ctx.lineTo(cx + 8, cy - rDisk - 2);
+      ctx.lineTo(cx, cy - rDisk + 10);
+      ctx.closePath();
+      ctx.fillStyle = '#38bdf8';
+      ctx.fill();
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 1.2;
+      ctx.stroke();
+
+      if (deltaW <= 0.02) {
         ctx.fillStyle = '#10b981';
         ctx.font = 'bold 13px sans-serif';
         ctx.textAlign = 'center';
@@ -1363,14 +1485,23 @@
       const cy = canvas.height / 2;
       const rHoles = 155;
 
+      const dx = clickX - cx;
+      const dy = clickY - cy;
+      const isCCW = (currentDirection === 'CCW');
+      const rotAngle = isCCW ? -diskRotationDeg : diskRotationDeg;
+      const rotRad = toRad(rotAngle);
+
+      const unrotX = dx * Math.cos(-rotRad) - dy * Math.sin(-rotRad);
+      const unrotY = dx * Math.sin(-rotRad) + dy * Math.cos(-rotRad);
+
       let closestSpot = null;
       let minDst = 9999;
 
       weightSpots.forEach(spot => {
-        const theta = diskAngleCWToCanvasRad(spot.diskAngleCW);
-        const hx = cx + rHoles * Math.cos(theta);
-        const hy = cy + rHoles * Math.sin(theta);
-        const d = Math.hypot(clickX - hx, clickY - hy);
+        const theta = toRad(spot.diskAngleCW - 90);
+        const hx = rHoles * Math.cos(theta);
+        const hy = rHoles * Math.sin(theta);
+        const d = Math.hypot(unrotX - hx, unrotY - hy);
         if (d < minDst) {
           minDst = d;
           closestSpot = spot;
@@ -1381,6 +1512,7 @@
         isManualSelection = true;
         if (manuallySelectedSpots.has(closestSpot.spotNum)) {
           manuallySelectedSpots.delete(closestSpot.spotNum);
+          delete fixedSpotsMap[closestSpot.spotNum];
         } else {
           manuallySelectedSpots.add(closestSpot.spotNum);
         }
@@ -1388,16 +1520,14 @@
       }
     });
 
-    document.getElementById('btnAuto2').addEventListener('click', () => {
-      isManualSelection = false;
-      manuallySelectedSpots.clear();
-      calculate();
+    ['wMax', 'wMin', 'directDelta', 'angleLight'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.addEventListener('input', calculate);
     });
 
-    ['wMax', 'wMin', 'directDelta', 'angleHeavy'].forEach(id => {
-      document.getElementById(id).addEventListener('input', calculate);
+    window.addEventListener('DOMContentLoaded', () => {
+      handleModeChange();
     });
-
     handleModeChange();
   </script>
 </body>
