@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Rotor Static Balancing Calculator (36 Weight Spots)</title>
   <style>
     :root {
@@ -24,6 +24,7 @@
       margin: 0;
       padding: 0;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      -webkit-tap-highlight-color: transparent;
     }
 
     body {
@@ -86,14 +87,20 @@
 
     @media (max-width: 1180px) {
       .dashboard-layout {
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: 1fr;
       }
       .col-center {
-        grid-column: span 2;
         order: -1;
       }
       body {
         align-items: flex-start;
+        padding: 8px;
+      }
+      .container {
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.1rem;
       }
     }
 
@@ -136,9 +143,9 @@
       background: transparent;
       border: 1px solid var(--accent);
       color: var(--accent);
-      padding: 2px 7px;
+      padding: 4px 8px;
       border-radius: 4px;
-      font-size: 0.72rem;
+      font-size: 0.75rem;
       cursor: pointer;
       transition: all 0.15s;
     }
@@ -160,7 +167,7 @@
       background: #0f172a;
       border: 1px solid var(--border);
       color: var(--text);
-      padding: 6px 8px;
+      padding: 8px;
       border-radius: 6px;
       font-size: 0.85rem;
       outline: none;
@@ -181,22 +188,23 @@
     .radio-group {
       display: flex;
       flex-direction: column;
-      gap: 5px;
+      gap: 6px;
       font-size: 0.8rem;
     }
 
     .radio-label {
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 8px;
       cursor: pointer;
       color: var(--text);
+      padding: 2px 0;
     }
 
     .radio-label input[type="radio"] {
       accent-color: var(--accent);
-      width: 14px;
-      height: 14px;
+      width: 16px;
+      height: 16px;
       cursor: pointer;
     }
 
@@ -283,19 +291,19 @@
       color: var(--text-dim);
       font-weight: 600;
       text-align: left;
-      padding: 3px 4px;
+      padding: 4px;
       border-bottom: 1px solid var(--border);
     }
 
     .spots-table td {
-      padding: 4px;
+      padding: 5px 4px;
       border-bottom: 1px solid rgba(51, 65, 85, 0.5);
       vertical-align: middle;
     }
 
     .spots-table input[type="number"] {
       width: 65px;
-      padding: 3px 5px;
+      padding: 4px 6px;
       font-size: 0.8rem;
       text-align: right;
     }
@@ -303,8 +311,8 @@
     .spots-table input[type="checkbox"] {
       accent-color: var(--accent);
       cursor: pointer;
-      width: 14px;
-      height: 14px;
+      width: 16px;
+      height: 16px;
     }
 
     canvas {
@@ -317,6 +325,8 @@
       border-radius: 8px;
       display: block;
       cursor: grab;
+      touch-action: none;
+      user-select: none;
     }
 
     canvas:active {
@@ -409,9 +419,9 @@
       background: #1e293b;
       border: 1px solid var(--border);
       color: var(--text);
-      padding: 4px 0;
+      padding: 6px 0;
       border-radius: 4px;
-      font-size: 0.72rem;
+      font-size: 0.75rem;
       font-weight: 600;
       cursor: pointer;
       transition: all 0.15s;
@@ -427,31 +437,6 @@
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 6px;
-    }
-
-    .calibration-row {
-      display: grid;
-      grid-template-columns: 1.2fr 1fr;
-      gap: 6px;
-      margin-bottom: 6px;
-    }
-
-    .btn-calib {
-      background: #1e293b;
-      border: 1px solid var(--border);
-      color: var(--text);
-      padding: 5px 10px;
-      border-radius: 4px;
-      font-size: 0.75rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.15s;
-    }
-
-    .btn-calib:hover {
-      background: var(--accent);
-      color: #0f172a;
-      border-color: var(--accent);
     }
   </style>
 </head>
@@ -538,13 +523,13 @@
       <!-- COLUMN 2: ROTOR DRAWING -->
       <div class="col-center">
         <canvas id="diskCanvas" width="480" height="480"></canvas>
-        <div class="hint">Scroll wheel over disk: rotate (2.0° step) | Click spot: toggle placement</div>
+        <div class="hint">Scroll / Drag to rotate (2.0° step) | Tap spot to toggle placement</div>
         <div class="legend">
           <div class="legend-item"><div class="dot heavy"></div> Heavy spot</div>
           <div class="legend-item"><div class="dot weight"></div> Counterweight</div>
           <div class="legend-item"><div class="dot fixed"></div> 🔒 Fixed mass</div>
           <div class="legend-item"><div class="dot target"></div> Stand pointer (0°)</div>
-          <div class="legend-item"><div class="dot divider"></div> Divider</div>
+          <div class="legend-item"><div class="dot divider"></div> Divider (0°, 30°, 60°...)</div>
         </div>
       </div>
 
@@ -615,30 +600,6 @@
 
         <div class="card">
           <div class="card-header-flex">
-            <h3>Hardware Encoder Calibration</h3>
-            <span id="calibStatus" style="font-size: 0.72rem; color: #10b981;">● Saved</span>
-          </div>
-          <div class="calibration-row">
-            <div>
-              <label>Zero Offset, θ_offset (°):</label>
-              <input type="number" id="inputZeroOffset" value="0.00" step="0.1" disabled title="Scroll wheel here to adjust">
-            </div>
-            <div>
-              <label>Direction:</label>
-              <select id="selectDirection" disabled>
-                <option value="CW" selected>CW (Clockwise)</option>
-                <option value="CCW">CCW (Counter-CW)</option>
-              </select>
-            </div>
-          </div>
-          <div style="display: flex; gap: 6px; justify-content: flex-end;">
-            <button type="button" class="btn-calib" id="btnToggleCalib">⚙️ Unlock</button>
-            <button type="button" class="btn-calib" id="btnResetCalib" style="display: none;">Reset</button>
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="card-header-flex">
             <h3>Stand Geometry</h3>
           </div>
           <div class="specs-grid">
@@ -668,33 +629,29 @@
     const CONST_L = 100;
     const CONST_R = 79;
     const TOTAL_DIVISIONS = 48;
-    const STEP_ANGLE = 360 / TOTAL_DIVISIONS;
+    const STEP_ANGLE = 360 / TOTAL_DIVISIONS; // 7.5°
 
-    let currentZeroOffset = parseFloat(localStorage.getItem('snezh_rotor_zero_offset')) || 0.0;
-    let currentDirection = localStorage.getItem('snezh_rotor_direction') || 'CW';
     let maxSpotMassLimit = parseFloat(localStorage.getItem('snezh_rotor_max_spot_mass')) || 8.0;
     let defaultFixMass = parseFloat(localStorage.getItem('snezh_rotor_default_fix')) || 8.0;
 
     let diskRotationDeg = 0.0;
     const fixedSpotsMap = {};
 
+    // Углы отверстий всегда строго совпадают с их позицией на делительном круге:
+    // 0° — перегородка 1, 7.5° — позиция #1, 15.0° — позиция #2, 22.5° — позиция #3, 30° — перегородка 2...
     let weightSpots = [];
     function rebuildWeightSpots() {
       weightSpots = [];
       let currentSpotNum = 1;
-      const isCCW = (currentDirection === 'CCW');
 
       for (let i = 0; i < TOTAL_DIVISIONS; i++) {
         if (i % 4 !== 0) {
-          const spotDiskAngleCW = (i * STEP_ANGLE) + currentZeroOffset;
-          let encoderAngle = isCCW ? (360 - spotDiskAngleCW) : spotDiskAngleCW;
-          encoderAngle = ((encoderAngle % 360) + 360) % 360;
-
+          const exactSpotAngle = i * STEP_ANGLE; // 7.5°, 15°, 22.5°, 37.5°...
           weightSpots.push({
             spotNum: currentSpotNum++,
             gridPos: i,
-            diskAngleCW: spotDiskAngleCW,
-            angle: encoderAngle
+            diskAngleCW: exactSpotAngle,
+            angle: exactSpotAngle // Строго совпадает с позицией
           });
         }
       }
@@ -715,17 +672,10 @@
     const angleLightInput = document.getElementById('angleLight');
     const heavyAngleDisplay = document.getElementById('heavyAngleDisplay');
 
-    const inputZeroOffset = document.getElementById('inputZeroOffset');
-    const selectDirection = document.getElementById('selectDirection');
-    const btnToggleCalib = document.getElementById('btnToggleCalib');
-    const btnResetCalib = document.getElementById('btnResetCalib');
-    const calibStatus = document.getElementById('calibStatus');
     const inputMaxSpotMass = document.getElementById('inputMaxSpotMass');
     const inputDefaultFix = document.getElementById('inputDefaultFix');
     const diskRotationStatus = document.getElementById('diskRotationStatus');
 
-    inputZeroOffset.value = currentZeroOffset.toFixed(2);
-    selectDirection.value = currentDirection;
     inputMaxSpotMass.value = maxSpotMassLimit.toFixed(2);
     inputDefaultFix.value = defaultFixMass.toFixed(2);
 
@@ -740,68 +690,7 @@
       localStorage.setItem('snezh_rotor_default_fix', defaultFixMass.toString());
     });
 
-    let isCalibUnlocked = false;
-
-    btnToggleCalib.addEventListener('click', () => {
-      isCalibUnlocked = !isCalibUnlocked;
-      if (isCalibUnlocked) {
-        inputZeroOffset.disabled = false;
-        selectDirection.disabled = false;
-        inputZeroOffset.focus();
-        btnToggleCalib.innerText = '💾 Save';
-        btnResetCalib.style.display = 'inline-block';
-        calibStatus.innerText = '● Editing';
-        calibStatus.style.color = '#f59e0b';
-      } else {
-        inputZeroOffset.disabled = true;
-        selectDirection.disabled = true;
-        btnToggleCalib.innerText = '⚙️ Unlock';
-        btnResetCalib.style.display = 'none';
-        calibStatus.innerText = '● Saved';
-        calibStatus.style.color = '#10b981';
-        localStorage.setItem('snezh_rotor_zero_offset', currentZeroOffset.toString());
-        localStorage.setItem('snezh_rotor_direction', currentDirection);
-      }
-    });
-
-    selectDirection.addEventListener('change', () => {
-      currentDirection = selectDirection.value;
-      localStorage.setItem('snezh_rotor_direction', currentDirection);
-      rebuildWeightSpots();
-      calculate();
-    });
-
-    btnResetCalib.addEventListener('click', () => {
-      currentZeroOffset = 0.0;
-      currentDirection = 'CW';
-      inputZeroOffset.value = '0.00';
-      selectDirection.value = 'CW';
-      localStorage.setItem('snezh_rotor_zero_offset', '0');
-      localStorage.setItem('snezh_rotor_direction', 'CW');
-      rebuildWeightSpots();
-      calculate();
-    });
-
-    inputZeroOffset.addEventListener('input', () => {
-      currentZeroOffset = parseFloat(inputZeroOffset.value) || 0.0;
-      localStorage.setItem('snezh_rotor_zero_offset', currentZeroOffset.toString());
-      rebuildWeightSpots();
-      calculate();
-    });
-
-    inputZeroOffset.addEventListener('wheel', (e) => {
-      if (!isCalibUnlocked) return;
-      e.preventDefault();
-      const step = e.shiftKey ? 1.0 : 0.1;
-      currentZeroOffset += (e.deltaY < 0 ? step : -step);
-      currentZeroOffset = Math.round(currentZeroOffset * 100) / 100;
-      inputZeroOffset.value = currentZeroOffset.toFixed(2);
-      localStorage.setItem('snezh_rotor_zero_offset', currentZeroOffset.toString());
-      rebuildWeightSpots();
-      calculate();
-    });
-
-    // Вращение диска колесиком мыши с шагом 2.0°
+    // Вращение диска колесиком мыши (шаг 2.0°)
     canvas.addEventListener('wheel', (e) => {
       e.preventDefault();
       const step = e.shiftKey ? 10.0 : 2.0;
@@ -809,6 +698,82 @@
       diskRotationDeg = ((diskRotationDeg % 360) + 360) % 360;
       diskRotationStatus.innerText = `Rotation: ${diskRotationDeg.toFixed(1)}°`;
       calculate();
+    });
+
+    // Сенсорное управление
+    let touchStartAngle = null;
+    let touchStartDiskDeg = 0;
+    let isTouchDragging = false;
+    let touchStartTime = 0;
+    let touchStartX = 0;
+    let touchStartY = 0;
+
+    function getTouchCanvasCoords(touch) {
+      const rect = canvas.getBoundingClientRect();
+      const scaleX = canvas.width / rect.width;
+      const scaleY = canvas.height / rect.height;
+      return {
+        x: (touch.clientX - rect.left) * scaleX,
+        y: (touch.clientY - rect.top) * scaleY
+      };
+    }
+
+    canvas.addEventListener('touchstart', (e) => {
+      if (e.touches.length !== 1) return;
+      const touch = e.touches[0];
+      const coords = getTouchCanvasCoords(touch);
+      touchStartX = coords.x;
+      touchStartY = coords.y;
+      touchStartTime = Date.now();
+
+      const cx = canvas.width / 2;
+      const cy = canvas.height / 2;
+      const dx = coords.x - cx;
+      const dy = coords.y - cy;
+      const dist = Math.hypot(dx, dy);
+
+      if (dist < 210) {
+        touchStartAngle = Math.atan2(dy, dx) * 180 / Math.PI;
+        touchStartDiskDeg = diskRotationDeg;
+        isTouchDragging = false;
+      }
+    }, { passive: false });
+
+    canvas.addEventListener('touchmove', (e) => {
+      if (e.touches.length !== 1 || touchStartAngle === null) return;
+      e.preventDefault();
+
+      const touch = e.touches[0];
+      const coords = getTouchCanvasCoords(touch);
+      const cx = canvas.width / 2;
+      const cy = canvas.height / 2;
+      const dx = coords.x - cx;
+      const dy = coords.y - cy;
+
+      if (!isTouchDragging && Math.hypot(coords.x - touchStartX, coords.y - touchStartY) > 6) {
+        isTouchDragging = true;
+      }
+
+      if (isTouchDragging) {
+        const currentAngle = Math.atan2(dy, dx) * 180 / Math.PI;
+        let deltaAngle = currentAngle - touchStartAngle;
+        let newRot = touchStartDiskDeg + deltaAngle;
+        diskRotationDeg = ((newRot % 360) + 360) % 360;
+        diskRotationStatus.innerText = `Rotation: ${diskRotationDeg.toFixed(1)}°`;
+        calculate();
+      }
+    }, { passive: false });
+
+    canvas.addEventListener('touchend', (e) => {
+      if (touchStartAngle === null) return;
+
+      const duration = Date.now() - touchStartTime;
+      if (!isTouchDragging && duration < 350) {
+        handleSpotSelection(touchStartX, touchStartY);
+      }
+
+      touchStartAngle = null;
+      isTouchDragging = false;
     });
 
     function toRad(deg) { return (deg * Math.PI) / 180; }
@@ -1258,28 +1223,20 @@
       const cy = canvas.height / 2;
       const rDisk = 195;
       const rHoles = 155;
-      const isCCW = (currentDirection === 'CCW');
 
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      const rotAngle = isCCW ? -diskRotationDeg : diskRotationDeg;
-      const rotRad = toRad(rotAngle);
+      const rotRad = toRad(diskRotationDeg);
 
-      // 1. FIXED OUTER ENCODER DIAL
+      // 1. Неподвижный внешний репер стенда
       ctx.fillStyle = '#64748b';
       ctx.font = 'bold 10px sans-serif';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.fillText('0° (Ref)', cx, cy - rDisk - 14);
       ctx.fillText('180°', cx, cy + rDisk + 12);
-
-      if (isCCW) {
-        ctx.fillText('270°', cx + rDisk + 18, cy);
-        ctx.fillText('90°', cx - rDisk - 18, cy);
-      } else {
-        ctx.fillText('90°', cx + rDisk + 18, cy);
-        ctx.fillText('270°', cx - rDisk - 18, cy);
-      }
+      ctx.fillText('90°', cx + rDisk + 18, cy);
+      ctx.fillText('270°', cx - rDisk - 18, cy);
 
       ctx.beginPath();
       ctx.strokeStyle = '#334155';
@@ -1290,9 +1247,7 @@
       ctx.moveTo(cx + rDisk - 4, cy); ctx.lineTo(cx + rDisk + 4, cy);
       ctx.stroke();
 
-      // ==========================================
-      // 2. ROTATING ROTOR BODY
-      // ==========================================
+      // 2. Вращающееся тело ротора
       ctx.save();
       ctx.translate(cx, cy);
       ctx.rotate(rotRad);
@@ -1307,7 +1262,7 @@
         ctx.fillStyle = balGrad;
         ctx.fill();
       } else {
-        const hRadInternal = toRad((isCCW ? -heavyAngle : heavyAngle) - 90);
+        const hRadInternal = toRad(heavyAngle - 90);
         const cosH = Math.cos(hRadInternal);
         const sinH = Math.sin(hRadInternal);
 
@@ -1348,8 +1303,9 @@
       ctx.moveTo(0, -14); ctx.lineTo(0, 14);
       ctx.stroke();
 
+      // 12 спиц-перегородок: 0°, 30°, 60°, 90°...
       for (let i = 0; i < TOTAL_DIVISIONS; i += 4) {
-        const dividerAngle = (i * STEP_ANGLE) + currentZeroOffset;
+        const dividerAngle = i * STEP_ANGLE;
         const theta = toRad(dividerAngle - 90);
         const cosT = Math.cos(theta);
         const sinT = Math.sin(theta);
@@ -1361,6 +1317,7 @@
         ctx.stroke();
       }
 
+      // 36 отверстий: точно по углам 7.5°, 15°, 22.5°...
       weightSpots.forEach(spot => {
         const theta = toRad(spot.diskAngleCW - 90);
         const cosT = Math.cos(theta);
@@ -1421,8 +1378,9 @@
         ctx.restore();
       });
 
+      // Векторы
       if (deltaW > 0.02) {
-        const hRad = toRad((isCCW ? -heavyAngle : heavyAngle) - 90);
+        const hRad = toRad(heavyAngle - 90);
         const heavyX = (rDisk - 18) * Math.cos(hRad);
         const heavyY = (rDisk - 18) * Math.sin(hRad);
         ctx.beginPath();
@@ -1435,7 +1393,7 @@
         ctx.fillStyle = '#ef4444';
         ctx.fill();
 
-        const tRad = toRad((isCCW ? -targetAngle : targetAngle) - 90);
+        const tRad = toRad(targetAngle - 90);
         const targetX = rHoles * Math.cos(tRad);
         const targetY = rHoles * Math.sin(tRad);
         ctx.beginPath();
@@ -1453,7 +1411,7 @@
 
       ctx.restore();
 
-      // 3. FIXED STAND POINTER AT 0° (12:00)
+      // 3. Неподвижный репер стенда на 0°
       ctx.beginPath();
       ctx.moveTo(cx - 8, cy - rDisk - 2);
       ctx.lineTo(cx + 8, cy - rDisk - 2);
@@ -1474,22 +1432,14 @@
       }
     }
 
-    canvas.addEventListener('click', (e) => {
-      const rect = canvas.getBoundingClientRect();
-      const scaleX = canvas.width / rect.width;
-      const scaleY = canvas.height / rect.height;
-      const clickX = (e.clientX - rect.left) * scaleX;
-      const clickY = (e.clientY - rect.top) * scaleY;
-
+    function handleSpotSelection(clickX, clickY) {
       const cx = canvas.width / 2;
       const cy = canvas.height / 2;
       const rHoles = 155;
 
       const dx = clickX - cx;
       const dy = clickY - cy;
-      const isCCW = (currentDirection === 'CCW');
-      const rotAngle = isCCW ? -diskRotationDeg : diskRotationDeg;
-      const rotRad = toRad(rotAngle);
+      const rotRad = toRad(diskRotationDeg);
 
       const unrotX = dx * Math.cos(-rotRad) - dy * Math.sin(-rotRad);
       const unrotY = dx * Math.sin(-rotRad) + dy * Math.cos(-rotRad);
@@ -1508,7 +1458,7 @@
         }
       });
 
-      if (closestSpot && minDst < 18) {
+      if (closestSpot && minDst < 22) {
         isManualSelection = true;
         if (manuallySelectedSpots.has(closestSpot.spotNum)) {
           manuallySelectedSpots.delete(closestSpot.spotNum);
@@ -1518,6 +1468,15 @@
         }
         calculate();
       }
+    }
+
+    canvas.addEventListener('click', (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const scaleX = canvas.width / rect.width;
+      const scaleY = canvas.height / rect.height;
+      const clickX = (e.clientX - rect.left) * scaleX;
+      const clickY = (e.clientY - rect.top) * scaleY;
+      handleSpotSelection(clickX, clickY);
     });
 
     ['wMax', 'wMin', 'directDelta', 'angleLight'].forEach(id => {
